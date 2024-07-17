@@ -112,7 +112,7 @@ cartsRouter.put('/:id', async (req, res) => {
     }
 });
 
-cartsRouter.put('/:id/products/:pid', async (req, res) => {
+cartsRouter.put('/:id/products/:pid', verifyToken, handlePolicies(['self']), async (req, res) => {
     try {
         const cart = req.params.id;
         const product = req.params.pid;
