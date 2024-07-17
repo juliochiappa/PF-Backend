@@ -1,6 +1,6 @@
-import userModel from './models/users.model.js';
+import userModel from '../models/users.model.js';
 
-class UserManager {
+class UsersService {
     constructor() {
     }
 
@@ -73,4 +73,4 @@ class UserManager {
     };
 }
 
-export default UserManager;
+export default UsersService;

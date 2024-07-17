@@ -1,14 +1,42 @@
 import { Router } from 'express';
 import passport from 'passport';
 import config from '../config.js';
-import { createHash, isValidPassword, verifyRequiredBody, createToken, verifyToken } from '../utils.js';
-import UserManager from '../dao/usersManager.js';
+import { createHash, isValidPassword, verifyRequiredBody, createToken, verifyToken } from '../services/utils.js';
+import UserManager from '../controllers/usersManager.js';
 import initAuthStrategies, {passportCall} from '../auth/passport.strategies.js';
 
 
 const authRouter = Router();
 const manager = new UserManager();
 initAuthStrategies();
+
+export const verifyAuthorization = (role) => {
+    return async (req, res, next) => {
+        if (!req.user) return res.status(401).send({ origin: config.SERVER, payload: 'Usuario no autenticado' });
+        if (req.user.role !== role) return res.status(403).send({ origin: config.SERVER, payload: 'No tiene permisos de Administrador para ingresar' });
+        
+        next();
+    }
+}
+
+export const handlePolicies = policies => {
+    return async (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).send({ origin: config.SERVER, payload: 'Usuario no autenticado' });
+        }
+        if (!policies.includes(req.user.role)) {
+            return res.status(403).send({ origin: config.SERVER, payload: 'No tiene permisos para acceder al recurso' });
+        }
+        next();
+    }
+}
+
+// const adminAuth = (req, res, next) => {
+//     if (req.session.user?.role !== 'admin') {
+//         return res.status(403).send({ origin: config.SERVER, payload: 'Acceso no autorizado: se requiere autenticación y nivel de admin' });
+//     }
+//     next();
+// }
 
 authRouter.get('/counter', async (req, res) => {
     try {
@@ -23,35 +51,6 @@ authRouter.get('/counter', async (req, res) => {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
-
-// const adminAuth = (req, res, next) => {
-//     if (req.session.user?.role !== 'admin') {
-//         return res.status(403).send({ origin: config.SERVER, payload: 'Acceso no autorizado: se requiere autenticación y nivel de admin' });
-//     }
-//     next();
-// }
-
-const verifyAuthorization = (role) => {
-    return async (req, res, next) => {
-        if (!req.user) return res.status(401).send({ origin: config.SERVER, payload: 'Usuario no autenticado' });
-        if (req.user.role !== role) return res.status(403).send({ origin: config.SERVER, payload: 'No tiene permisos de Administrador para ingresar' });
-        
-        next();
-    }
-}
-
-const handlePolicies = policies => {
-    return async (req, res, next) => {
-        if (!req.user) {
-            return res.status(401).send({ origin: config.SERVER, payload: 'Usuario no autenticado' });
-        }
-        if (!policies.includes(req.user.role)) {
-            return res.status(403).send({ origin: config.SERVER, payload: 'No tiene permisos para acceder al recurso' });
-        }
-        next();
-    }
-}
-
 
 authRouter.get('/hash/:password', async (req, res) => {
     res.status(200).send({ origin: config.SERVER, payload: createHash(req.params.password) });
@@ -136,7 +135,6 @@ authRouter.get('/ghlogincallback', passport.authenticate('ghlogin', {failureRedi
     }
 });
 
-
         // Ruta /admin con veryfyAuthorization
 
 authRouter.get('/admin', verifyToken, verifyAuthorization ('admin'), async (req, res) => {
@@ -147,7 +145,7 @@ authRouter.get('/admin', verifyToken, verifyAuthorization ('admin'), async (req,
     }
 });
 
-   // Ruta /ppadmin con veryfyAuthorization
+        // Ruta /ppadmin con veryfyAuthorization
 
 //authRouter.get('/ppadmin', passport.authenticate('jwtlogin', { session: false }), verifyAuthorization('admin'), async (req, res) => {
 authRouter.get('/ppadmin', passportCall('jwtlogin'), verifyAuthorization('admin'), async (req, res) => {

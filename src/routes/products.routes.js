@@ -1,7 +1,8 @@
 import {Router} from 'express';
-import {uploader} from '../uploader.js';
+import {uploader} from '../services/uploader.js';
+import { verifyToken, handlePolicies } from '../services/utils.js';
 import config from '../config.js';
-import ProductManager from '../dao/productsManager.js';
+import ProductManager from '../controllers/productsManager.js';
 
 
 const productsRouter = Router();
@@ -47,7 +48,7 @@ productsRouter.get('/one/:id', async (req, res) => {
     }
 });
 
-productsRouter.post('/', uploader.single('thumbnail'), async (req, res) => {
+productsRouter.post('/', verifyToken, handlePolicies('admin'), uploader.single('thumbnail'), async (req, res) => {
     try {
         const socketServer = req.app.get('socketServer');
         const process = await manager.addProduct(req.body);
@@ -67,7 +68,7 @@ productsRouter.post('/', uploader.single('thumbnail'), async (req, res) => {
     }
 });
 
-productsRouter.put('/:id', async (req, res) => {
+productsRouter.put('/:id', verifyToken, handlePolicies('admin'), async (req, res) => {
     try {
         const filter = { _id: req.validatedId };
         const update = req.body;

@@ -1,6 +1,6 @@
-import cartModel from './models/carts.models.js';
-import userModel from '../dao/models/users.model.js';
-import productModel from '../dao/models/products.models.js';
+import cartModel from '../models/carts.models.js';
+import userModel from '../models/users.model.js';
+import productModel from '../models/products.models.js';
 
 class CartManager {
     constructor() {

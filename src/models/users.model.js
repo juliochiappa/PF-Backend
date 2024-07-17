@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     email: {type: String, required: true},
     password: {type: String, required: true},
     role: {type: String, enum: ['admin', 'premium', 'user'], default: 'user'},
+    cart_id: { type: mongoose.Schema.Types.ObjectId, required: true},
 });
 
 userSchema.plugin(mongoosePaginate);

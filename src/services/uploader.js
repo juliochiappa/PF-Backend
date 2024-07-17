@@ -1,5 +1,5 @@
 import multer from 'multer';
-import config from './config.js';
+import config from '../config.js';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {

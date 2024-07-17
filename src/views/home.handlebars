@@ -1,0 +1,15 @@
+<div>
+    <h1>¡ Listado de Productos !</h1>
+    <ul class="list-group">
+        {{#each products}}
+            <li class="list-group-item">{{id}}, {{title}}, {{description}}, {{code}}, {{price}}, {{status}}, {{stock}}, {{category}}, {{thumbnails}}</li>
+        {{/each}}
+    </ul>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+<script>
+    const serverAddress = 'ws://localhost:8080';
+    const socketClient = io(serverAddress);
+    
+</script>

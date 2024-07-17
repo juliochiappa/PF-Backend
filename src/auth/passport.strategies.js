@@ -4,8 +4,8 @@ import GitHubStrategy from 'passport-github2';
 import jwt from 'passport-jwt';
 
 import config from '../config.js';
-import UserManager from '../dao/usersManager.js';
-import { isValidPassword } from '../utils.js';
+import UserManager from '../controllers/usersManager.js';
+import { isValidPassword } from '../services/utils.js';
 
 const localStrategy = local.Strategy;
 const jwtStrategy = jwt.Strategy;
