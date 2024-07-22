@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config.js';
+import { errorsDictionary } from '../config.js';
+import CustomError from './customError.class.js';
 
 
 export const verifyMongoDBId = (id) => {
@@ -39,8 +41,8 @@ export const verifyRequiredBody = (requiredFields) => {
             req.body.hasOwnProperty(field) && req.body[field] !== '' && req.body[field] !== null && req.body[field] !== undefined
         );
         
-        if (!allOk) return res.status(400).send({ origin: config.SERVER, payload: 'Faltan propiedades', requiredFields });
-  
+        //if (!allOk) return res.status(400).send({ origin: config.SERVER, payload: 'Faltan propiedades', requiredFields });
+        if (!allOk) throw new CustomError(errorsDictionary.FEW_PARAMETERS); //Lo toma desde el control central de errores
       next();
     };
 };

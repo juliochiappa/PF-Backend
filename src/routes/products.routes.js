@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import {uploader} from '../services/uploader.js';
-import { verifyToken, handlePolicies } from '../services/utils.js';
+import { verifyToken, handlePolicies, verifyRequiredBody } from '../services/utils.js';
 import config from '../config.js';
 import ProductManager from '../controllers/productsManager.js';
 
@@ -48,7 +48,7 @@ productsRouter.get('/one/:id', async (req, res) => {
     }
 });
 
-productsRouter.post('/', verifyToken, handlePolicies('admin'), uploader.single('thumbnail'), async (req, res) => {
+productsRouter.post('/', verifyToken, handlePolicies('admin'), verifyRequiredBody(['title', 'code', 'price', 'stock']), uploader.single('thumbnail'), async (req, res) => {
     try {
         const socketServer = req.app.get('socketServer');
         const process = await manager.addProduct(req.body);

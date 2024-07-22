@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
@@ -7,6 +6,8 @@ import MongoStore from 'connect-mongo';
 import flash from 'express-flash';
 import passport from 'passport';
 //import FileStore from 'session-file-store';
+import { faker } from '@faker-js/faker';
+
 
 import config from './config.js';
 import productsRouter from './routes/products.routes.js';
@@ -20,6 +21,7 @@ import TestRouter from './routes/test.routes.js';
 import baseRouter from './routes/base.routes.js';
 import MongoSingleton from './services/mongo.singleton.js';
 import cors from 'cors';
+import errorsHandler from './services/errors.handler.js';
 
 const app = express();
 
@@ -30,6 +32,30 @@ const expressInstance = app.listen(config.PORT, async () => {
 
 const socketServer = initSocket(expressInstance);
 app.set('socketServer', socketServer);
+
+//Mocking con faker
+const generateFakeProducts = async (qty) => {
+    const products = [];
+    const DESCRIPTIONS = [
+        'Crema masajes',
+        'Limpieza de cutis',
+        'Reducción grasa abdominal'
+    ];
+    const CATEGORIES = ['Nacional', 'Importado'];
+
+    for (let i = 0; i < qty; i++) {
+        const title = faker.commerce.productName();
+        const description = DESCRIPTIONS[Math.floor(Math.random() * DESCRIPTIONS.length)];
+        const code = faker.string.uuid(); 
+        const price = faker.number.int({ min: 10, max: 10000 }); 
+        const stock = faker.number.int({ min: 1, max: 500 }); 
+        const status = faker.datatype.boolean(); 
+        const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+
+        products.push({ title, description, code, price, status, stock, category });
+    }
+    return products;
+};
 
 app.use (cors({origin:'*'})); //Acepta solicitudes de cualquier lugar de la Tierra porque esta abierta.
 app.use(express.json());
@@ -44,7 +70,6 @@ process.on('exit', code => {
         console.log('Proceso finalizado por argumentación inválida en una función');
     }
 });
-
 
 //const fileStorage = FileStore(session);
 app.use(session({
@@ -72,6 +97,13 @@ app.use('/api/cookies', cookiesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/test', new TestRouter().getRouter());
 app.use('/static', express.static(`${config.DIRNAME}/public`));
+app.use(errorsHandler);
+
+//Endpoint del Mocking con faker
+app.get('/mockingproducts/:qty', async (req, res) => {
+    const data = await generateFakeProducts(parseInt(req.params.qty));
+    res.status(200).send({ status: 'OK', payload: data });
+});
 
 console.log(`App activa en puerto ${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);
 
