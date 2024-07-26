@@ -22,6 +22,7 @@ import baseRouter from './routes/base.routes.js';
 import MongoSingleton from './services/mongo.singleton.js';
 import cors from 'cors';
 import errorsHandler from './services/errors.handler.js';
+import addLogger from './services/logger.js';
 
 const app = express();
 
@@ -87,9 +88,10 @@ app.engine('handlebars', handlebars.engine());
 app.set('views', `${config.DIRNAME}/views`);
 app.set('view engine', 'handlebars');
 
+app.use(addLogger);
+
 //Uso de plantilla de Handlebars
 app.use('/', viewRouter);
-
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
 app.use('/api/users', usersRouter);
@@ -99,13 +101,19 @@ app.use('/api/test', new TestRouter().getRouter());
 app.use('/static', express.static(`${config.DIRNAME}/public`));
 app.use(errorsHandler);
 
+//Endpoint del Logger Test
+app.get('/loggerTest', async (req, res) => {
+    req.logger.info(`${new Date().toDateString()} ${req.method} ${req.url}`);
+    res.status(200).send({ message: `Register received` });
+});
+
 //Endpoint del Mocking con faker
 app.get('/mockingproducts/:qty', async (req, res) => {
     const data = await generateFakeProducts(parseInt(req.params.qty));
     res.status(200).send({ status: 'OK', payload: data });
 });
 
-console.log(`App activa en puerto ${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);
+console.log(`App activa en http//localhost:${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);
 
 app.get('/', (req, res) => {
     res.send(`
