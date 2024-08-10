@@ -75,3 +75,4 @@ export function calculateTotalAmount(products) {
     });
     return total;
 }
+

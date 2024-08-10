@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import config from '../config.js';
 import UserManager from '../controllers/usersManager.js';
+import nodemailer from 'nodemailer';
+import { verifyToken, handlePolicies } from '../services/utils.js';
 
 const usersRouter = Router();
 const manager = new UserManager();
@@ -60,6 +62,24 @@ usersRouter.put('/:id', async (req, res) => {
     }
 });
 
+usersRouter.put('/premium/:uid', verifyToken, handlePolicies(['admin']), async (req, res) => {
+    try {
+        const userId = req.params.uid;
+        const user = await manager.getUserById(userId);
+        // Verifica si el usuario existe
+        if (!user) {
+            return res.status(404).send({ message: "Usuario no encontrado." });
+        }
+        // Alterna el rol del usuario entre 'user' y 'premium'
+        user.role = user.role === 'user' ? 'premium' : 'user';
+        await user.save();
+        res.status(200).send({ message: `El rol del usuario ha sido cambiado a ${user.role}` });
+    } catch (err) {
+        res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+    }
+});
+
+
 usersRouter.delete('/:id', async (req, res) => {
     try {
         const filter = { _id: req.params.id };
@@ -68,6 +88,38 @@ usersRouter.delete('/:id', async (req, res) => {
         res.status(200).send({ origin: config.SERVER, payload: process });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+    }
+});
+
+
+//Mailing con nodemailer
+export function sendResetEmail(to, resetLink) {
+    const transport = nodemailer.createTransport({
+        service: 'gmail',
+        port: 587,
+        auth: {
+            user: config.GMAIL_APP_USER,
+            pass: config.GMAIL_APP_PASS
+        }
+    });
+
+    return transport.sendMail({
+        from: `Sistema CIEC <${config.GMAIL_APP_USER}>`,
+        to: to,
+        subject: 'Restablecimiento de contraseña',
+        text: `Haz clic en el siguiente enlace para restablecer tu contraseña: ${resetLink}`
+    });
+}
+
+//Endpoint prueba de Mailing
+usersRouter.get('/mail', async (req, res) => {
+    try {
+        const resetLink = 'http://tudominio.com/reset-password/4fddf31f5b849e0a0e93b8e6e8c7b32d'; // Link de prueba
+        const confirmation = await sendResetEmail('juliochiappa@hotmail.com', resetLink);
+        
+        res.status(200).send({ status: 'OK', data: confirmation });
+    } catch (err) {
+        res.status(500).send({ status: 'ERR', data: err.message });
     }
 });
 

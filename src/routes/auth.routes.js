@@ -107,16 +107,78 @@ authRouter.post('/pplogin', verifyRequiredBody(['email', 'password']), passport.
     }
 });
 
-authRouter.post('/jwtlogin', verifyRequiredBody(['email', 'password']), passport.authenticate('login', { failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida')}`}), async (req, res) => {
+// Ruta para solicitar restablecimiento de contraseña
+authRouter.post('/forgot-password', verifyRequiredBody(['email']), async (req, res) => {
     try {
-        const token = createToken(req.user, '1h');
-        //res.cookie(`${config.APP_NAME}_cookie`, token, { maxAge: 60 * 60 * 1000, httpOnly: true });
-        //res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado' });
-        res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
+        const { email } = req.body;
+        const user = await manager.getOne({ email: email });
+
+        if (!user) {
+            return res.status(400).send({ message: 'No se encontró una cuenta con ese email.' });
+        }
+
+        const token = generateResetToken(); // Genera el token
+        await storeResetToken(user, token); // Guarda el token en la base de datos
+
+        const resetLink = generateResetLink(req, token); // Genera el enlace de restablecimiento
+
+        await sendResetEmail(user.email, resetLink); // Envía el enlace por correo
+
+        res.status(200).send({ message: 'Se ha enviado un enlace de restablecimiento de contraseña a tu email.' });
     } catch (err) {
-        res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+        res.status(500).send({ error: 'Error en el servidor. Inténtalo de nuevo más tarde.' });
     }
 });
+
+// Ruta para manejar el restablecimiento de contraseña
+authRouter.post('/reset-password/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { newPassword } = req.body;
+
+        const user = await manager.getOne({ resetPasswordToken: token });
+
+        if (!user || user.resetPasswordExpires < Date.now()) {
+            return res.status(400).send({ message: 'El enlace ha expirado. Por favor, solicita uno nuevo.' });
+        }
+
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).send({ message: 'No puedes usar la misma contraseña. Elige una nueva.' });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10); // Hash de la nueva contraseña
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        res.status(200).send({ message: 'Contraseña restablecida con éxito.' });
+    } catch (err) {
+        res.status(500).send({ error: 'Error en el servidor. Inténtalo de nuevo más tarde.' });
+    }
+});
+
+// authRouter.post('/jwtlogin', verifyRequiredBody(['email', 'password']), passport.authenticate('login', { failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida')}`}), async (req, res) => {
+//     try {
+//         const token = createToken(req.user, '1h');
+//         //res.cookie(`${config.APP_NAME}_cookie`, token, { maxAge: 60 * 60 * 1000, httpOnly: true });
+//         //res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado' });
+//         res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
+//     } catch (err) {
+//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+//     }
+// });
+
+authRouter.post('/jwtlogin', verifyRequiredBody(['email', 'password']), passport.authenticate('login', { failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}`}), async (req, res) => {
+        try {
+            const token = createToken(req.user, '1h');
+            res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
+        } catch (err) {
+            res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+        }
+    }
+);
 
 authRouter.get('/ghlogin', passport.authenticate('ghlogin', {scope: ['user:email']}), async (req, res) => {
 });

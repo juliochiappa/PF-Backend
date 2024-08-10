@@ -29,7 +29,12 @@ const config = {
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
   GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL,
-  MODE: 'dev'
+  MODE: 'dev',
+  GMAIL_APP_USER: 'juliochiappa43@gmail.com',
+  GMAIL_APP_PASS: process.env.GMAIL_APP_PASS,
+  TWILIO_SID: process.env.TWILIO_SID,
+  TWILIO_TOKEN: process.env.TWILIO_TOKEN,
+  TWILIO_PHONE: process.env.TWILIO_PHONE
 }
 
 export const errorsDictionary = {

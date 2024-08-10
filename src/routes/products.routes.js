@@ -48,10 +48,12 @@ productsRouter.get('/one/:id', async (req, res) => {
     }
 });
 
-productsRouter.post('/', verifyToken, handlePolicies('admin'), verifyRequiredBody(['title', 'code', 'price', 'stock']), uploader.single('thumbnail'), async (req, res) => {
+productsRouter.post('/', verifyToken, handlePolicies(['admin', 'premium']), verifyRequiredBody(['title', 'code', 'price', 'stock']), uploader.single('thumbnail'), async (req, res) => {
     try {
         const socketServer = req.app.get('socketServer');
-        const process = await manager.addProduct(req.body);
+
+        const owner = req.user.role === 'premium' ? req.user._id : null;
+        const process = await manager.addProduct(req.body, owner);
         
         res.status(200).send({ origin: config.SERVER, payload: process });
 
@@ -81,9 +83,30 @@ productsRouter.put('/:id', verifyToken, handlePolicies('admin'), async (req, res
     }
 }),
 
-productsRouter.delete('/:id', async (req, res) => {
+// productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']), async (req, res) => {
+//     try {
+//         const filter = { _id: req.validatedId };
+//         const process = await manager.deleteProduct(filter);
+
+//         res.status(200).send({ origin: config.SERVER, payload: process });
+//     } catch (err) {
+//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+//     }
+// });
+
+productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']), async (req, res) => {
     try {
-        const filter = { _id: req.validatedId };
+        const product = await manager.getProductById(req.params.id);
+        // Verifica si el producto existe
+        if (!product) {
+            return res.status(404).send({ message: "Producto no encontrado." });
+        }
+        // Verifica si el usuario es 'premium' y dueño del producto, o si es 'admin'
+        if (req.user.role === 'premium' && product.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ message: "No tienes permiso para eliminar este producto." });
+        }
+        // Se elimina el producto si está todo correcto
+        const filter = { _id: req.params.id };
         const process = await manager.deleteProduct(filter);
 
         res.status(200).send({ origin: config.SERVER, payload: process });
@@ -91,6 +114,7 @@ productsRouter.delete('/:id', async (req, res) => {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
+
 
 productsRouter.all ('*', async (req, res) => {
     res.status(404).send({ origin: config.SERVER, payload: null, error: 'No se encuentra la ruta solicitada' });

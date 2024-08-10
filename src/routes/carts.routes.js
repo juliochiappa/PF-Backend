@@ -20,17 +20,39 @@ cartsRouter.get('/', async (req, res) => {
     }
 });
 
-cartsRouter.post('/', async (req, res) => {
-    try {
-        const process = await manager.addCarts(req.body);
+// cartsRouter.post('/', async (req, res) => {
+//     try {
+//         const process = await manager.addCarts(req.body);
         
+//         res.status(200).send({ origin: config.SERVER, payload: process });
+//     } catch (err) {
+//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+//     }
+// });
+
+// Ruta para finalizar la compra de un carrito
+
+cartsRouter.post('/', verifyToken, async (req, res) => {
+    try {
+        const { productId } = req.body;
+        const product = await manager.getProductById(productId);
+        // Verifica si el producto existe
+        if (!product) {
+            return res.status(404).send({ message: "Producto no encontrado." });
+        }
+        // Verifica si el usuario es premium y si es dueño del producto
+        if (req.user.role === 'premium' && product.owner.toString() === req.user._id.toString()) {
+            return res.status(403).send({ message: "No puedes agregar tu propio producto al carrito." });
+        }
+        // Agrega el producto al carrito
+        const process = await manager.addCarts(req.body);
+
         res.status(200).send({ origin: config.SERVER, payload: process });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
 
-// Ruta para finalizar la compra de un carrito
 cartsRouter.post('/:id/purchase', async (req, res) => {
     const cartId = req.params.id;
 

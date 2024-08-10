@@ -23,6 +23,8 @@ import MongoSingleton from './services/mongo.singleton.js';
 import cors from 'cors';
 import errorsHandler from './services/errors.handler.js';
 import addLogger from './services/logger.js';
+//import nodemailer from 'nodemailer';
+import twilio from 'twilio';
 
 const app = express();
 
@@ -33,6 +35,20 @@ const expressInstance = app.listen(config.PORT, async () => {
 
 const socketServer = initSocket(expressInstance);
 app.set('socketServer', socketServer);
+
+
+//Mailing con nodemailer
+// const transport = nodemailer.createTransport({
+//     service: 'gmail',
+//     port: 587,
+//     auth: {
+//         user: config.GMAIL_APP_USER,
+//         pass: config.GMAIL_APP_PASS
+//     }
+// });
+
+//SMS con Twilio
+const twilioClient = twilio(config.TWILIO_SID, config.TWILIO_TOKEN);
 
 //Mocking con faker
 const generateFakeProducts = async (qty) => {
@@ -113,14 +129,44 @@ app.get('/mockingproducts/:qty', async (req, res) => {
     res.status(200).send({ status: 'OK', payload: data });
 });
 
-console.log(`App activa en http//localhost:${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);
+//Endpoint prueba de Mailing
+// app.get('/mail', async (req, res) => {
+//     try {
+//         let confirmation = await transport.sendMail({
+//             from: `Sistema CIEC <${config.GMAIL_APP_USER}>`,
+//             to: 'juliochiappa@hotmail.com',
+//             subject: 'Pruebas de Nodemailer',
+//             html: '<h1>Primer mail de prueba</h1>'
+            
+//         });
+//         res.status(200).send({ status: 'OK', data: confirmation });
+//     } catch (err) {
+//         res.status(500).send({ status: 'ERR', data: err.message });
+//     }
+// });
 
+//Endpoint prueba de SMS
+app.get('/sms', async (req, res) => {
+    try {
+        const confirmation = await twilioClient.messages.create({
+            body: 'Mensaje enviado con servicio de Twilio',
+            from: config.TWILIO_PHONE,
+            to: '+543517069105'
+        });
+        res.status(200).send({ status: 'OK', data: confirmation });
+    } catch (err) {
+        res.status(500).send({ status: 'ERR', data: err.message });
+    }
+});
+
+//Endpoint de Bienvenida a la app
 app.get('/', (req, res) => {
     res.send(`
-        <h1>¡Bienvenido a mi segunda entrega del Proyecto Final!</h1>
+        <h1>¡Bienvenido a mi nueva entrega del Proyecto Final!</h1>
         <ul>
         <h2>Servidor express activo en puerto ${config.PORT}<h2>
         <ul>
         `);
     });
-
+    
+console.log(`App activa en http//localhost:${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);
