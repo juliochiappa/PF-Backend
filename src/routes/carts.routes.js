@@ -134,10 +134,10 @@ cartsRouter.put('/:id', async (req, res) => {
     }
 });
 
-cartsRouter.put('/:id/products/:pid', verifyToken, handlePolicies(['self']), async (req, res) => {
+cartsRouter.put('/:id/products/:id', verifyToken, handlePolicies(['self']), async (req, res) => {
     try {
         const cart = req.params.id;
-        const product = req.params.pid;
+        const product = req.params.id;
         
     res.status(200).send({ origin: config.SERVER, payload: `Desea agregar 1 unidad del producto ${product} al carrito ${cart} ?` });
     } catch (err) {
@@ -156,7 +156,7 @@ cartsRouter.delete('/:id', verifyToken, handlePolicies(['self']), async (req, re
     }
 });
 
-cartsRouter.delete('/:id/products/:pid', async (req, res) => {
+cartsRouter.delete('/:id/products/:id', async (req, res) => {
     try {
         const filter = { _id: req.params.id }; 
         const process = await manager.deleteCartItem(filter); 

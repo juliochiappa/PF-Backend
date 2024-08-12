@@ -1,0 +1,210 @@
+openapi: 3.0.1
+info:
+  title: Documentación sistema CIEC - Carritos de Compra
+  description: Esta documentación cubre los endpoints relacionados con los carritos de compra en el sistema CIEC.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor local
+
+components:
+  schemas:
+    CartProduct:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID del producto
+        stock:
+          type: number
+          description: Cantidad del producto en el carrito
+      required:
+        - _id
+        - stock
+
+    Cart:
+      type: object
+      properties:
+        _user_id:
+          type: string
+          description: ID del usuario dueño del carrito
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartProduct'
+          description: Lista de productos en el carrito
+      required:
+        - _user_id
+        - products
+
+paths:
+  /carts:
+    get:
+      summary: Retrieve all carts
+      description: Get a list of all carts.
+      responses:
+        '200':
+          description: A list of carts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cart'
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new cart
+      description: Add a new cart to the system.
+      requestBody:
+        description: Cart object that needs to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cart'
+      responses:
+        '201':
+          description: Cart created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /carts/{id}/purchase:
+    post:
+      summary: Purchase the cart
+      description: Purchase all items in the cart with the given ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the cart to purchase
+      responses:
+        '200':
+          description: Cart purchased successfully
+        '404':
+          description: Cart not found
+        '500':
+          description: Internal server error
+
+  /carts/{id}:
+    put:
+      summary: Update a cart by ID
+      description: Update the cart's products or details by its ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the cart to update
+      requestBody:
+        description: Cart object that needs to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cart'
+      responses:
+        '200':
+          description: Cart updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          description: Cart not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a cart by ID
+      description: Delete an existing cart by ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the cart to delete
+      responses:
+        '200':
+          description: Cart deleted successfully
+        '404':
+          description: Cart not found
+        '500':
+          description: Internal server error
+
+  /carts/{id}/products/{productId}:
+    put:
+      summary: Update a product in a cart by ID
+      description: Update the quantity of a specific product in the cart.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the cart to update
+        - in: path
+          name: productId
+          schema:
+            type: string
+          required: true
+          description: ID of the product to update in the cart
+      requestBody:
+        description: Object containing the new quantity of the product
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stock:
+                  type: number
+                  description: New quantity of the product
+              required:
+                - stock
+      responses:
+        '200':
+          description: Product updated in cart successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          description: Cart or product not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Remove a product from a cart by ID
+      description: Delete a specific product from the cart.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the cart to update
+        - in: path
+          name: productId
+          schema:
+            type: string
+          required: true
+          description: ID of the product to remove from the cart
+      responses:
+        '200':
+          description: Product removed from cart successfully
+        '404':
+          description: Cart or product not found
+        '500':
+          description: Internal server error

@@ -7,6 +7,8 @@ import flash from 'express-flash';
 import passport from 'passport';
 //import FileStore from 'session-file-store';
 import { faker } from '@faker-js/faker';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUiExpress from 'swagger-ui-express';
 
 
 import config from './config.js';
@@ -159,6 +161,21 @@ app.get('/sms', async (req, res) => {
     }
 });
 
+// Endpoint para servir la documentación de las rutas users y products
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.1',
+        info: {
+            title: 'Documentación sistema CIEC',
+            description: 'Esta documentación cubre toda la API habilitada para CIEC -"Centro Integral de Estética Corporal"-',
+        },
+    },
+    apis: ['./src/docs/**/*.yaml'], 
+};
+const specs = swaggerJSDoc(swaggerOptions);
+app.use('/api/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
+
+
 //Endpoint de Bienvenida a la app
 app.get('/', (req, res) => {
     res.send(`
@@ -168,5 +185,4 @@ app.get('/', (req, res) => {
         <ul>
         `);
     });
-    
 console.log(`App activa en http//localhost:${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);

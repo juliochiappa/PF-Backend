@@ -1,0 +1,176 @@
+openapi: 3.0.1
+info:
+  title: Documentación sistema CIEC - Productos
+  description: Esta documentación cubre los endpoints relacionados con los productos en el sistema CIEC.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor local
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Nombre del producto
+        description:
+          type: string
+          enum:
+            - Crema masajes
+            - Limpieza de cutis
+            - Reducción grasa abdominal
+          description: Descripción del producto
+        code:
+          type: string
+          description: Código único del producto
+        price:
+          type: number
+          description: Precio del producto
+        status:
+          type: boolean
+          description: Estado del producto (disponible o no)
+        stock:
+          type: number
+          description: Cantidad disponible del producto
+        category:
+          type: string
+          enum:
+            - Nacional
+            - Importado
+          description: Categoría del producto
+        thumbnails:
+          type: array
+          items:
+            type: string
+          description: URLs de las imágenes del producto
+        owner:
+          type: string
+          description: ID del propietario del producto
+      required:
+        - title
+        - code
+        - price
+        - stock
+        - category
+
+paths:
+  /products:
+    get:
+      summary: Retrieve all products
+      description: Get a list of all products.
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new product
+      description: Add a new product to the system.
+      requestBody:
+        description: Product object that needs to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /products/aggregate:
+    get:
+      summary: Retrieve aggregated products data
+      description: Get aggregated data of products.
+      responses:
+        '200':
+          description: Aggregated data retrieved successfully
+        '500':
+          description: Internal server error
+
+  /products/one/{id}:
+    get:
+      summary: Retrieve a product by ID
+      description: Get a specific product by its ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the product to retrieve
+      responses:
+        '200':
+          description: Product retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+  /products/{id}:
+    put:
+      summary: Update a product by ID
+      description: Update an existing product's information by ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the product to update
+      requestBody:
+        description: Product object that needs to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a product by ID
+      description: Delete an existing product by ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the product to delete
+      responses:
+        '200':
+          description: Product deleted successfully
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error

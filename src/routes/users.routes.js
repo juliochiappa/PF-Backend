@@ -62,9 +62,9 @@ usersRouter.put('/:id', async (req, res) => {
     }
 });
 
-usersRouter.put('/premium/:uid', verifyToken, handlePolicies(['admin']), async (req, res) => {
+usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (req, res) => {
     try {
-        const userId = req.params.uid;
+        const userId = req.params.id;
         const user = await manager.getUserById(userId);
         // Verifica si el usuario existe
         if (!user) {

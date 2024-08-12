@@ -1,0 +1,216 @@
+openapi: 3.0.1
+info:
+  title: Documentación sistema CIEC
+  description: Esta documentación cubre toda la API habilitada para CIEC
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor local
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: First name of the user
+        lastName:
+          type: string
+          description: Last name of the user
+        email:
+          type: string
+          description: Email of the user
+        password:
+          type: string
+          description: Password of the user
+        role:
+          type: string
+          enum:
+            - admin
+            - premium
+            - user
+          description: Role of the user
+        cart_id:
+          type: string
+          description: Cart ID associated with the user
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+        - cart_id
+
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      description: Add a new user to the system.
+      requestBody:
+        description: User object that needs to be added
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /users/{id}:
+    get:
+      summary: Retrieve a user by ID
+      description: Retrieve an existing user's information by ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the user to retrieve
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a user by ID
+      description: Update an existing user's information by ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the user to update
+      requestBody:
+        description: User object that needs to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a user by ID
+      description: Delete an existing user by ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the user to delete
+      responses:
+        '200':
+          description: User deleted successfully
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /paginate/{page}/{limit}:
+    get:
+      summary: Retrieve a paginated list of users
+      description: Retrieve users with pagination.
+      parameters:
+        - in: path
+          name: page
+          schema:
+            type: integer
+          required: true
+          description: Page number to retrieve
+        - in: path
+          name: limit
+          schema:
+            type: integer
+          required: true
+          description: Number of users per page
+      responses:
+        '200':
+          description: A paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  totalDocs:
+                    type: integer
+                    description: Total number of users
+                  limit:
+                    type: integer
+                    description: Number of users per page
+                  page:
+                    type: integer
+                    description: Current page number
+                  totalPages:
+                    type: integer
+                    description: Total number of pages
+                  pagingCounter:
+                    type: integer
+                    description: Number of users displayed on the current page
+                  hasPrevPage:
+                    type: boolean
+                    description: Indicates if there is a previous page
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates if there is a next page
+        '404':
+          description: Page not found
+        '500':
+          description: Internal server error
+
+  /premium/{id}:
+    put:
+      summary: Update user to premium
+      description: Updates the role of an existing user to 'premium' based on their user ID.
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: User ID of the user to update to premium
+      responses:
+        '200':
+          description: User updated to premium successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+  
+
