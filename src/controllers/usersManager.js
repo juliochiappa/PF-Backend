@@ -5,7 +5,9 @@ const service = new UsersService();
 class ProductsDTO {
     constructor(user) {
         this.user = user;
-        this.user.title = this.user.title.toUpperCase();
+        if (this.user.title && typeof this.user.title === 'string') {
+            this.user.title = this.user.title.toUpperCase();
+        } 
     }
 }
 
