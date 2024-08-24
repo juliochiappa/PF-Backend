@@ -249,4 +249,15 @@ authRouter.get('/logout', async (req, res) => {
     }
 });
 
+authRouter.get('/current', verifyToken, async (req, res) => {
+    try {
+        const user = req.user; 
+        if (!user) return res.status(401).send({ origin: config.SERVER, payload: 'Usuario no autenticado' });
+        res.status(200).send({ status: "success", payload: user });
+    } catch (err) {
+        res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+    }
+});
+
+
 export default authRouter;

@@ -6,13 +6,17 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --env-file .env.devel src/app",
-    "prod": "node --env-file .env.prod src/app"
+    "prod": "node --env-file .env.prod src/app",
+    "supertest": "mocha test/supertest.test.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "nodemon": "^3.1.0"
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.0.0"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -45,3 +49,4 @@
     "winston": "^3.13.1"
   }
 }
+  
