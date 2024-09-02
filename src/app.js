@@ -25,8 +25,9 @@ import MongoSingleton from './services/mongo.singleton.js';
 import cors from 'cors';
 import errorsHandler from './services/errors.handler.js';
 import addLogger from './services/logger.js';
-//import nodemailer from 'nodemailer';
 import twilio from 'twilio';
+import { uploader } from './services/uploader.js';
+//import nodemailer from 'nodemailer';
 
 const app = express();
 
@@ -37,6 +38,20 @@ const expressInstance = app.listen(config.PORT, async () => {
 
 const socketServer = initSocket(expressInstance);
 app.set('socketServer', socketServer);
+
+const uploadRouter = express.Router();
+
+uploadRouter.post('/products', uploader.array('productImages', 3), (req, res) => {
+    res.status(200).send({ status: 'OK', payload: 'Imágenes subidas', files: req.files });
+});
+
+uploadRouter.post('/profiles', uploader.array('profileImages', 2), (req, res) => {
+    res.status(200).send({ status: 'OK', payload: 'Imágenes subidas', files: req.files });
+});
+
+uploadRouter.post('/documents', uploader.array('documentImages', 3), (req, res) => {
+    res.status(200).send({ status: 'OK', payload: 'Imágenes subidas', files: req.files });
+});
 
 
 //Mailing con nodemailer
@@ -116,6 +131,11 @@ app.use('/api/users', usersRouter);
 app.use('/api/cookies', cookiesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/test', new TestRouter().getRouter());
+//app.use('/upload', uploadRouter);
+app.get('/upload', (req, res) => {
+    res.render('upload'); // Renderiza la vista 'upload.hbs'
+});
+
 app.use('/static', express.static(`${config.DIRNAME}/public`));
 app.use(errorsHandler);
 
@@ -146,6 +166,7 @@ app.get('/mockingproducts/:qty', async (req, res) => {
 //         res.status(500).send({ status: 'ERR', data: err.message });
 //     }
 // });
+
 
 //Endpoint prueba de SMS
 app.get('/sms', async (req, res) => {
@@ -185,4 +206,6 @@ app.get('/', (req, res) => {
         <ul>
         `);
     });
+
+
 console.log(`App activa en http//localhost:${config.PORT} enlazada a ddbb Atlas, PID: ${process.pid}, URI motor: ${config.MONGODB_URI}`);

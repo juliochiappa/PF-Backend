@@ -79,7 +79,6 @@ usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (r
     }
 });
 
-
 usersRouter.delete('/:id', async (req, res) => {
     try {
         const filter = { _id: req.params.id };

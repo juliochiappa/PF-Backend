@@ -1,23 +1,27 @@
 import { Server } from 'socket.io';
 
-const initSocket = (httpServer) => {
-    let messages = [];
-    
-    const io = new Server(httpServer);
+const initSocket = (server) => {
+    const io = new Server(server);
 
-    io.on('connection', client => {
-        client.emit('chatLog', messages);
-        console.log(`Cliente conectado, id ${client.id} desde ${client.handshake.address}`);
-    
-        client.on('newMessage', data => {
-            messages.push(data);
-            console.log(`Mensaje recibido desde ${client.id}: ${data.user} ${data.message}`);
-    
-            io.emit('messageArrived', data);
+    // Al establecer conexión con un cliente
+    io.on('connection', (socket) => {
+        console.log('Nuevo cliente conectado:', socket.id);
+
+        // Escuchar cuando un cliente envía un nuevo mensaje
+        socket.on('newMessage', (message) => {
+            console.log('Mensaje recibido:', message);
+
+            // Emitir el mensaje a todos los clientes conectados
+            io.emit('messageArrived', message);
+        });
+
+        // Desconexión de un cliente
+        socket.on('disconnect', () => {
+            console.log('Cliente desconectado:', socket.id);
         });
     });
 
     return io;
-}
+};
 
 export default initSocket;

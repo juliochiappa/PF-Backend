@@ -10,12 +10,14 @@ const devLogger = winston.createLogger({
 
 const prodLogger = winston.createLogger({
     transports: [
+        new winston.transports.Console({ level: 'debug' }),
         new winston.transports.File({ level: 'error', filename: `${config.DIRNAME}/logs/errors.log` })
     ]
 });
 
 
 const addLogger = (req, res, next) => {
+    //req.logger = devLogger;
     req.logger = config.MODE === 'dev' ? devLogger : prodLogger;
     req.logger.error(`${new Date().toDateString()} ${req.method} ${req.url}`);
 
@@ -23,3 +25,4 @@ const addLogger = (req, res, next) => {
 }
 
 export default addLogger;
+

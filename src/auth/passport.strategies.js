@@ -27,8 +27,7 @@ const initAuthStrategies = () => {
         async (req, username, password, done) => {
             try {
                 const foundUser = await manager.getOne({ email: username });
-
-                if (foundUser && isValidPassword(password, foundUser.password)) {
+              if (foundUser && isValidPassword(password, foundUser.password)) {
                     const { password, ...filteredFoundUser } = foundUser;
                     return done(null, filteredFoundUser);
                 } else {
@@ -39,6 +38,7 @@ const initAuthStrategies = () => {
             }
         }
     ));
+     
 
     //Estrategia de GitHub
     passport.use('ghlogin', new GitHubStrategy( 
