@@ -72,6 +72,19 @@ class UserManager {
         };
     };
 
+    addDocumentsToUser = async (userId, documents) => {
+        try {
+            const update = {
+                $push: { documents: { $each: documents } },
+                $set: { status: 'documentos_subidos' }
+            };
+            const options = { new: true };  // Devolver el usuario actualizado
+            return await service.updateUser({ _id: userId }, update, options);
+        } catch (err) {
+            return err.message;
+        }
+    };
+
     updateUser = async (filter, update, options) => {
         try {
             return await service.updateUser(filter, update, options);

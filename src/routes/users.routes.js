@@ -3,6 +3,7 @@ import config from '../config.js';
 import UserManager from '../controllers/usersManager.js';
 import nodemailer from 'nodemailer';
 import { verifyToken, handlePolicies } from '../services/utils.js';
+import { uploader } from '../services/uploader.js';
 
 const usersRouter = Router();
 const manager = new UserManager();
@@ -62,22 +63,57 @@ usersRouter.put('/:id', async (req, res) => {
     }
 });
 
+// usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (req, res) => {
+//     try {
+//         const userId = req.params.id;
+//         const user = await manager.getUserById(userId);
+//         // Verifica si el usuario existe
+//         if (!user) {
+//             return res.status(404).send({ message: "Usuario no encontrado." });
+//         }
+//         // Alterna el rol del usuario entre 'user' y 'premium'
+//         user.role = user.role === 'user' ? 'premium' : 'user';
+//         await user.save();
+//         res.status(200).send({ message: `El rol del usuario ha sido cambiado a ${user.role}` });
+//     } catch (err) {
+//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+//     }
+// });
+
 usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (req, res) => {
     try {
         const userId = req.params.id;
         const user = await manager.getUserById(userId);
-        // Verifica si el usuario existe
         if (!user) {
             return res.status(404).send({ message: "Usuario no encontrado." });
         }
-        // Alterna el rol del usuario entre 'user' y 'premium'
-        user.role = user.role === 'user' ? 'premium' : 'user';
+        if (user.role === 'premium') {
+            return res.status(400).send({ message: "El usuario ya es premium." });
+        }
+
+        const requiredDocuments = [
+            'Identificación',
+            'Comprobante de domicilio',
+            'Comprobante de estado de cuenta'
+        ];
+
+        const userDocuments = user.documents.map(doc => doc.name);
+        const documentsUploaded = requiredDocuments.every(doc => userDocuments.includes(doc));
+
+        if (!documentsUploaded) {
+            return res.status(400).send({
+                message: "El usuario no ha terminado de procesar su documentación. Asegúrate de haber cargado todos los documentos necesarios."
+            });
+        }
+
+        user.role = 'premium';
         await user.save();
         res.status(200).send({ message: `El rol del usuario ha sido cambiado a ${user.role}` });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
+
 
 usersRouter.delete('/:id', async (req, res) => {
     try {
@@ -90,6 +126,30 @@ usersRouter.delete('/:id', async (req, res) => {
     }
 });
 
+// Endpoint para subir documentos
+usersRouter.post('/:id/documents', uploader.array('productImages', 3), async (req, res) => {
+    const userId = req.params.id;
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: 'No se subieron archivos.' });
+        }
+        const documents = req.files.map(file => ({
+            name: file.originalname,
+            reference: file.path
+        }));
+        const updatedUser = await manager.addDocumentsToUser(userId, documents);
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+        res.status(200).json({
+            message: 'Documentos subidos y estado de usuario actualizado.',
+            user: updatedUser
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al subir los documentos.' });
+    }
+});
 
 //Mailing con nodemailer
 export function sendResetEmail(to, resetLink) {
@@ -115,7 +175,7 @@ usersRouter.get('/mail', async (req, res) => {
     try {
         const resetLink = 'http://tudominio.com/reset-password/4fddf31f5b849e0a0e93b8e6e8c7b32d'; // Link de prueba
         const confirmation = await sendResetEmail('juliochiappa@hotmail.com', resetLink);
-        
+     
         res.status(200).send({ status: 'OK', data: confirmation });
     } catch (err) {
         res.status(500).send({ status: 'ERR', data: err.message });

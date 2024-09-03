@@ -16,35 +16,12 @@
     </form>
     
     <br /><br />
-    
-    <form action="/upload/documents" method="POST" enctype="multipart/form-data">
-        <label for="documentImages">Selecciona documentos de usuario:</label>
-        <input type="file" name="documentImages" multiple id="documentImagesInput" accept=".pdf,.doc,.docx">
-        <p id="documentFileNames"></p>
-        <br /><br />
-        <button type="submit">Subir documentos de usuario</button>
-    </form>
-    
-    <script>
-        const documentImagesInput = document.getElementById('documentImagesInput');
-        const documentFileNames = document.getElementById('documentFileNames');
-    
-        documentImagesInput.addEventListener('change', () => {
-            const files = documentImagesInput.files;
-            documentFileNames.textContent = Array.from(files).map(file => file.name).join(', ');
-        });
-    </script>
-    
-</body>
-</html>
-
-
-    <!-- <br /><br />
 
     <form action="/upload/documents" method="POST" enctype="multipart/form-data">
         <input type="file" name="documentImages" multiple>
         <br /><br />
         <button type="submit">Subir documentos de usuario</button>
-    </form> -->
-
-
+    </form>
+    
+</body>
+</html>

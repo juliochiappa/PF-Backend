@@ -27,7 +27,6 @@ import errorsHandler from './services/errors.handler.js';
 import addLogger from './services/logger.js';
 import twilio from 'twilio';
 import { uploader } from './services/uploader.js';
-//import nodemailer from 'nodemailer';
 
 const app = express();
 
@@ -52,17 +51,6 @@ uploadRouter.post('/profiles', uploader.array('profileImages', 2), (req, res) =>
 uploadRouter.post('/documents', uploader.array('documentImages', 3), (req, res) => {
     res.status(200).send({ status: 'OK', payload: 'Imágenes subidas', files: req.files });
 });
-
-
-//Mailing con nodemailer
-// const transport = nodemailer.createTransport({
-//     service: 'gmail',
-//     port: 587,
-//     auth: {
-//         user: config.GMAIL_APP_USER,
-//         pass: config.GMAIL_APP_PASS
-//     }
-// });
 
 //SMS con Twilio
 const twilioClient = twilio(config.TWILIO_SID, config.TWILIO_TOKEN);
@@ -131,7 +119,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/cookies', cookiesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/test', new TestRouter().getRouter());
-//app.use('/upload', uploadRouter);
+app.use('/upload', uploadRouter);
 app.get('/upload', (req, res) => {
     res.render('upload'); // Renderiza la vista 'upload.hbs'
 });
@@ -150,23 +138,6 @@ app.get('/mockingproducts/:qty', async (req, res) => {
     const data = await generateFakeProducts(parseInt(req.params.qty));
     res.status(200).send({ status: 'OK', payload: data });
 });
-
-//Endpoint prueba de Mailing
-// app.get('/mail', async (req, res) => {
-//     try {
-//         let confirmation = await transport.sendMail({
-//             from: `Sistema CIEC <${config.GMAIL_APP_USER}>`,
-//             to: 'juliochiappa@hotmail.com',
-//             subject: 'Pruebas de Nodemailer',
-//             html: '<h1>Primer mail de prueba</h1>'
-            
-//         });
-//         res.status(200).send({ status: 'OK', data: confirmation });
-//     } catch (err) {
-//         res.status(500).send({ status: 'ERR', data: err.message });
-//     }
-// });
-
 
 //Endpoint prueba de SMS
 app.get('/sms', async (req, res) => {

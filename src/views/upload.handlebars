@@ -6,9 +6,7 @@
     <title>Centro de Estética Corporal-CIEC-</title>
 </head>
 <body>
-    <h1>Centro de Estética Corporal -CIEC-</h1>
-    
-    <!-- Formulario para subir imágenes de productos -->
+    <h1>Centro de Estética Corporal-CIEC-</h1>
     <form action="/upload/products" method="POST" enctype="multipart/form-data">
         <label for="productImages">Selecciona imágenes de productos:</label>
         <input type="file" name="productImages" multiple id="productImagesInput" accept="image/*">
@@ -19,7 +17,6 @@
     
     <br /><br />
     
-    <!-- Formulario para subir documentos de usuario -->
     <form action="/upload/documents" method="POST" enctype="multipart/form-data">
         <label for="documentImages">Selecciona documentos de usuario:</label>
         <input type="file" name="documentImages" multiple id="documentImagesInput" accept=".pdf,.doc,.docx">
@@ -28,7 +25,16 @@
         <button type="submit">Subir documentos de usuario</button>
     </form>
 
-    <!-- Script para mostrar los nombres de los archivos seleccionados -->
+<br /><br />
+    
+    <form action="/upload/profiles" method="POST" enctype="multipart/form-data">
+        <label for="profileImages">Selecciona perfil de usuario:</label>
+        <input type="file" name="profileImages" multiple id="profileImagesInput" accept=".jpg,.jpeg,.png,.gif">
+        <p id="documentFileNames"></p>
+        <br /><br />
+        <button type="submit">Subir DNI de usuario</button>
+    </form>
+
     <script>
         const documentImagesInput = document.getElementById('documentImagesInput');
         const documentFileNames = document.getElementById('documentFileNames');
@@ -40,10 +46,10 @@
     </script>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
-<script>
-    const serverAddress = 'ws://localhost:8080';
-    const socketClient = io(serverAddress);    
-</script>
+    <script>
+        const serverAddress = 'ws://localhost:8080';
+        const socketClient = io(serverAddress);    
+    </script>
 
 </body>
 </html>
