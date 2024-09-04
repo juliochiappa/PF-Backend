@@ -4,44 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro de Estética Corporal-CIEC-</title>
+    <style>
+        h1 {
+            color: #edf3ee; 
+            text-decoration: underline; 
+            text-align: center; 
+        }
+        
+        button {
+            display: block;
+            margin: 0 auto;
+            background-color: #455eb1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: justify;
+            text-decoration: none;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #595a61; /
+        }
+        form {
+            text-align: left; 
+        }
+    </style>
 </head>
 <body>
     <h1>Centro de Estética Corporal-CIEC-</h1>
+
+    <br /><br />
+
     <form action="/upload/products" method="POST" enctype="multipart/form-data">
         <label for="productImages">Selecciona imágenes de productos:</label>
         <input type="file" name="productImages" multiple id="productImagesInput" accept="image/*">
-        <p id="fileNames"></p>
+        <p id="productFileNames"></p>
         <br /><br />
         <button type="submit">Subir imágenes de producto</button>
     </form>
-    
+
     <br /><br />
-    
+
     <form action="/upload/documents" method="POST" enctype="multipart/form-data">
-        <label for="documentImages">Selecciona documentos de usuario:</label>
-        <input type="file" name="documentImages" multiple id="documentImagesInput" accept=".pdf,.doc,.docx">
+        <label for="documents">Selecciona documentos de usuario:</label>
+        <input type="file" name="documents" multiple id="documentsInput" accept=".pdf,.doc,.docx">
         <p id="documentFileNames"></p>
         <br /><br />
         <button type="submit">Subir documentos de usuario</button>
     </form>
 
-<br /><br />
-    
+    <br /><br />
+
     <form action="/upload/profiles" method="POST" enctype="multipart/form-data">
-        <label for="profileImages">Selecciona perfil de usuario:</label>
+        <label for="profileImages">Selecciona imagen de perfil de usuario:</label>
         <input type="file" name="profileImages" multiple id="profileImagesInput" accept=".jpg,.jpeg,.png,.gif">
-        <p id="documentFileNames"></p>
+        <p id="profileFileNames"></p>
         <br /><br />
-        <button type="submit">Subir DNI de usuario</button>
+        <button type="submit">Subir imagen de usuario</button>
     </form>
 
     <script>
-        const documentImagesInput = document.getElementById('documentImagesInput');
-        const documentFileNames = document.getElementById('documentFileNames');
-    
-        documentImagesInput.addEventListener('change', () => {
-            const files = documentImagesInput.files;
-            documentFileNames.textContent = Array.from(files).map(file => file.name).join(', ');
+        document.getElementById('productImagesInput').addEventListener('change', function() {
+            const fileNames = Array.from(this.files).map(file => file.name).join(', ');
+            document.getElementById('productFileNames').textContent = fileNames;
+        });
+
+        document.getElementById('documentsInput').addEventListener('change', function() {
+            const fileNames = Array.from(this.files).map(file => file.name).join(', ');
+            document.getElementById('documentFileNames').textContent = fileNames;
+        });
+
+        document.getElementById('profileImagesInput').addEventListener('change', function() {
+            const fileNames = Array.from(this.files).map(file => file.name).join(', ');
+            document.getElementById('profileFileNames').textContent = fileNames;
         });
     </script>
 
