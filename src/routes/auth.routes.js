@@ -277,21 +277,64 @@ authRouter.post("/reset-password/:token", async (req, res) => {
 
 // Ruta con passport y multer
 
-authRouter.post('/jwtlogin', uploader.array('documents', 4), verifyRequiredBody(['email', 'password']),
-        passport.authenticate('login', {failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}`}), 
+// authRouter.post('/jwtlogin', uploader.array('documents', 4), verifyRequiredBody(['email', 'password']),
+//         passport.authenticate('login', {failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}`}), 
+//     async (req, res) => {
+//         try {
+//           // Si se subieron archivos, procesar la información
+//             if (req.files && req.files.length > 0) {
+//                 const documents = req.files.map(file => ({
+//                     name: file.originalname,
+//                     reference: file.path
+//                 }));
+//               // Guardar los documentos en el usuario autenticado
+//                 req.user.documents = documents;
+//                 await req.user.save();
+//             }
+//           // Generar el token JWT
+//             const token = createToken(req.user, '1h');
+//             res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
+//         } catch (err) {
+//             res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+//         }
+//     }
+// );
+
+authRouter.post('/jwtlogin', uploader.array('documents', 3), verifyRequiredBody(['email', 'password']),
+    passport.authenticate('login', { 
+        failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}` 
+    }), 
     async (req, res) => {
         try {
-          // Si se subieron archivos, procesar la información
+            // Si se subieron archivos, procesar la información
+            let documents = [];
             if (req.files && req.files.length > 0) {
-                const documents = req.files.map(file => ({
+                documents = req.files.map(file => ({
                     name: file.originalname,
                     reference: file.path
                 }));
-              // Guardar los documentos en el usuario autenticado
-                req.user.documents = documents;
-                await req.user.save();
             }
-          // Generar el token JWT
+
+            // Filtrar el usuario por su ID (req.user._id)
+            const filter = { _id: req.user._id };
+
+            // Actualizar los documentos y el campo last_connection del usuario
+            const update = {
+                documents, 
+                last_connection: new Date() // Actualiza la última conexión a la fecha actual
+            };
+
+            // Opciones: devolver el documento actualizado y correr validaciones
+            const options = { new: true, runValidators: true };
+
+            // Actualizar los documentos y la última conexión en la base de datos
+            const updatedUser = await manager.updateUser(filter, update, options);
+            
+            if (!updatedUser) {
+                return res.status(404).send({ origin: config.SERVER, payload: null, error: 'Usuario no encontrado' });
+            }
+
+            // Generar el token JWT
             const token = createToken(req.user, '1h');
             res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
         } catch (err) {
@@ -299,48 +342,6 @@ authRouter.post('/jwtlogin', uploader.array('documents', 4), verifyRequiredBody(
         }
     }
 );
-
-// authRouter.post('/jwtlogin', verifyRequiredBody(['email', 'password']), async (req, res) => {
-//     try {
-//         const { email, password, documents } = req.body;
-
-//         // Imprime los datos recibidos para verificar
-//         console.log('Datos recibidos:', req.body);
-
-//         const foundUser = await manager.getOne({ email: email });
-
-//         if (foundUser && isValidPassword(password, foundUser.password)) {
-//             // Actualizar last_connection con la fecha actual
-//             foundUser.last_connection = new Date();
-
-//             // Agregar documentos al usuario si están presentes
-//             if (documents && Array.isArray(documents)) {
-//                 if (!foundUser.documents) {
-//                     foundUser.documents = [];
-//                 }
-
-//                 documents.forEach(doc => {
-//                     if (doc.name && doc.reference) {
-//                         foundUser.documents.push({ name: doc.name, reference: doc.reference });
-//                     } else {
-//                         return res.status(400).send({ origin: config.SERVER, payload: '', error: 'Algunos documentos no tienen nombre o referencia válidos' });
-//                     }
-//                 });
-//             }
-
-//             await foundUser.save(); // Guardar los cambios en la base de datos
-
-//             const token = createToken(foundUser, '1h');
-//             res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
-//         } else {
-//             res.status(401).send({ origin: config.SERVER, payload: 'Datos de acceso no válidos' });
-//         }
-//     } catch (err) {
-//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//     }
-// });
-
-
 
 authRouter.get(
   "/ghlogin",

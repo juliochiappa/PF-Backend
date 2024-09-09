@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "nodemon src/app.js",
-    "dev": "nodemon --env-file .env.devel src/app",
+    "dev": "nodemon src/app.js --mode=devel",
     "prod": "node --env-file .env.prod src/app",
     "supertest": "mocha test/supertest.test.js"
   },

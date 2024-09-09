@@ -51,10 +51,10 @@ productsRouter.get('/one/:id', async (req, res) => {
 productsRouter.post('/', verifyToken, handlePolicies(['admin', 'premium']), verifyRequiredBody(['title', 'code', 'price', 'stock']), uploader.single('thumbnail'), async (req, res) => {
     try {
         const socketServer = req.app.get('socketServer');
-
         const owner = req.user.role === 'premium' ? req.user._id : null;
+
         const process = await manager.addProduct(req.body, owner);
-        
+       
         res.status(200).send({ origin: config.SERVER, payload: process });
 
         socketServer.emit('newProduct', req.body);

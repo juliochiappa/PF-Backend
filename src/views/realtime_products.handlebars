@@ -103,6 +103,7 @@
     const productForm = document.getElementById('productForm');
 
     socketClient.on('newProduct', data => {
+        console.log('Nuevo producto recibido:', data);
         const li = document.createElement('li');
         li.textContent = `${data.id} ${data.title} ${data.description} ${data.code} ($ ${data.price}) ${data.status} ${data.stock} ${data.category} ${data.thumbnails}`;
         li.classList.add('list-group-item');
