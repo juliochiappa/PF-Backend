@@ -20,18 +20,7 @@ cartsRouter.get('/', async (req, res) => {
     }
 });
 
-// cartsRouter.post('/', async (req, res) => {
-//     try {
-//         const process = await manager.addCarts(req.body);
-        
-//         res.status(200).send({ origin: config.SERVER, payload: process });
-//     } catch (err) {
-//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//     }
-// });
-
 // Ruta para finalizar la compra de un carrito
-
 cartsRouter.post('/', verifyToken, async (req, res) => {
     try {
         const { productId } = req.body;
@@ -134,16 +123,30 @@ cartsRouter.put('/:id', async (req, res) => {
     }
 });
 
-cartsRouter.put('/:id/products/:id', verifyToken, handlePolicies(['self']), async (req, res) => {
+// Agrega un producto al carrito
+cartsRouter.put('/:cid/products/:pid', verifyToken, handlePolicies(['self']), async (req, res) => {
     try {
-        const cart = req.params.id;
-        const product = req.params.id;
-        
-    res.status(200).send({ origin: config.SERVER, payload: `Desea agregar 1 unidad del producto ${product} al carrito ${cart} ?` });
+        const cartId = req.params.cid;
+        const productId = req.params.pid;
+
+        const filter = { _id: cartId };
+        const update = {
+            $push: { products: { productId: productId, quantity: 1 } }
+        };
+        const options = { new: true };
+
+        const updatedCart = await manager.updateCarts(filter, update, options);
+
+        if (!updatedCart) {
+            return res.status(404).send({ origin: config.SERVER, payload: null, error: 'Carrito no encontrado' });
+        }
+
+        res.status(200).send({ origin: config.SERVER, payload: `Producto ${productId} agregado al carrito ${cartId}`, cart: updatedCart });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
+
 
 cartsRouter.delete('/:id', verifyToken, handlePolicies(['self']), async (req, res) => {
     try {

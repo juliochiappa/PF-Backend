@@ -5,8 +5,8 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon src/app.js",
-    "dev": "nodemon src/app.js --mode=devel",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app",
     "prod": "node --env-file .env.prod src/app",
     "supertest": "mocha test/supertest.test.js"
   },
