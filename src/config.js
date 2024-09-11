@@ -1,8 +1,6 @@
 import path from 'path';
 import {Command} from 'commander';
 import dotenv from 'dotenv';
-
-
 //Parseo de variables de líneas de comando
 const commandLine = new Command();
 commandLine
@@ -10,11 +8,9 @@ commandLine
       .option('--port <port>')
 commandLine.parse();
 const clOptions = commandLine.opts();
-
 //Parseo de variables de entorno
 dotenv.config({ path: clOptions.mode === 'prod' ? '.env.prod' : '.env.devel' });
 //dotenv.config(); //Se utiliza para .env solamente y lo toma por defecto
-
 const config = {
   APP_NAME: 'coder_53160_be',
   SERVER: 'atlas',
@@ -37,7 +33,6 @@ const config = {
   TWILIO_TOKEN: process.env.TWILIO_TOKEN,
   TWILIO_PHONE: process.env.TWILIO_PHONE
 }
-
 export const errorsDictionary = {
   UNHANDLED_ERROR: { code: 0, status: 500, message: 'Error no identificado' },
   ROUTING_ERROR: { code: 1, status: 404, message: 'No se encuentra el endpoint solicitado' },
@@ -53,5 +48,5 @@ export const errorsDictionary = {
   RECORD_CREATION_OK: { code: 11, status: 200, message: 'Registro creado' }
 }
 
-
 export default config;
+
