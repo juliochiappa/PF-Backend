@@ -12,8 +12,8 @@ commandLine.parse();
 const clOptions = commandLine.opts();
 
 //Parseo de variables de entorno
-//dotenv.config({ path: clOptions.mode === 'prod' ? '.env.prod' : '.env.devel' });
-dotenv.config(); //Se utiliza para .env solamente y lo toma por defecto
+dotenv.config({ path: clOptions.mode === 'prod' ? '.env.prod' : '.env.devel' });
+//dotenv.config(); //Se utiliza para .env solamente y lo toma por defecto
 
 const config = {
   APP_NAME: 'coder_53160_be',
