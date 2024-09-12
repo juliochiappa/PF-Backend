@@ -17,6 +17,28 @@ class CartManager {
         };
     };
 
+    getCartById = async (cartId) => {
+        try {
+            return await cartModel.findById(cartId)
+            .populate('_user_id', 'firstName lastName') 
+            .populate('products.productId', 'title price') 
+            .lean();
+        } catch (err) {
+            throw new Error('Error al buscar el carrito: ' + err.message);
+        }
+    };
+    
+    getCartByUserId = async (userId) => {
+        try {
+            return await cartModel.findOne({ _user_id: userId })
+            .populate('products.productId', 'title price') 
+            .lean();
+        } catch (err) {
+            throw new Error('Error al buscar el carrito: ' + err.message);
+        }
+    };
+    
+
     addCarts = async (newData) => {
         try {
             return await cartModel.create(newData);
@@ -30,7 +52,7 @@ class CartManager {
             return await cartModel.findOneAndUpdate(filter, update, options);
         } catch (err) {
             return err.message;
-        };
+        }
     };
 
     deleteCarts = async (filter) => {

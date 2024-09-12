@@ -20,6 +20,29 @@ cartsRouter.get('/', async (req, res) => {
     }
 });
 
+// Obtener el carrito del usuario
+cartsRouter.get('/mycart', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user._id;         
+
+        if (!userId) {
+            return res.status(400).json({ message: 'Usuario no autenticado' });
+        }
+
+        const cart = await manager.getCartByUserId({ _user_id: userId });
+
+        if (!cart) {
+            return res.status(404).json({ message: 'Carrito no encontrado' });
+        }
+
+        res.status(200).json({ payload: cart });
+    } catch (error) {
+        console.error('Error al obtener el carrito:', error);
+        res.status(500).json({ message: 'Error al obtener el carrito', error: error.message });
+    }
+});
+
+
 // Ruta para finalizar la compra de un carrito
 cartsRouter.post('/', verifyToken, async (req, res) => {
     try {
@@ -129,13 +152,24 @@ cartsRouter.put('/:cid/products/:pid', verifyToken, handlePolicies(['self']), as
         const cartId = req.params.cid;
         const productId = req.params.pid;
 
-        const filter = { _id: cartId };
-        const update = {
-            $push: { products: { productId: productId, quantity: 1 } }
-        };
-        const options = { new: true };
+        // Verifica si el carrito y el producto existen antes de actualizar
+        const cart = await manager.getCartById(cartId);
+        if (!cart) {
+            return res.status(404).send({ origin: config.SERVER, payload: null, error: 'Carrito no encontrado' });
+        }
 
-        const updatedCart = await manager.updateCarts(filter, update, options);
+        const productInCart = cart.products.find(p => p.productId.toString() === productId);
+
+        let update;
+        if (productInCart) {
+            update = { $inc: { 'products.$[elem].quantity': 1 } };
+        } else {
+            update = { $push: { products: { productId: productId, quantity: 1 } } };
+        }
+
+        const options = { new: true, arrayFilters: [{ 'elem.productId': productId }] };
+
+        const updatedCart = await manager.updateCarts({ _id: cartId }, update, options);
 
         if (!updatedCart) {
             return res.status(404).send({ origin: config.SERVER, payload: null, error: 'Carrito no encontrado' });
@@ -146,7 +180,6 @@ cartsRouter.put('/:cid/products/:pid', verifyToken, handlePolicies(['self']), as
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
-
 
 cartsRouter.delete('/:id', verifyToken, handlePolicies(['self']), async (req, res) => {
     try {

@@ -168,12 +168,13 @@ app.use('/api/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 
 //Endpoint de Bienvenida a la app
 app.get('/', (req, res) => {
-    res.send(`
-        <h1>¡Bienvenido a mi nueva entrega del Proyecto Final!</h1>
-        <ul>
-        <h2>Servidor express activo en puerto ${config.PORT}<h2>
-        <ul>
-        `);
+    res.redirect('/login');
+    // res.send(`
+    //     <h1>¡Bienvenido a mi nueva entrega del Proyecto Final!</h1>
+    //     <ul>
+    //     <h2>Servidor express activo en puerto ${config.PORT}<h2>
+    //     <ul>
+    //     `);
     });
 
 

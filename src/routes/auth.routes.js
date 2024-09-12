@@ -14,14 +14,14 @@ initAuthStrategies();
 // Configuración de multer para almacenar los archivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '../public/documentos'); // Directorio donde se almacenarán los archivos
+        cb(null, '../public/img'); // Directorio donde se almacenarán los archivos
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + '-' + file.originalname); // Nombra los archivos con un timestamp
     }
 });
 
-// const upload = multer({ storage: storage });
+//const upload = multer({ storage: storage });
 
 export const verifyAuthorization = (role) => {
   return async (req, res, next) => {
