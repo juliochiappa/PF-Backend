@@ -14,10 +14,10 @@ initAuthStrategies();
 // Configuración de multer para almacenar los archivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '../public/img'); // Directorio donde se almacenarán los archivos
+        cb(null, '../public/img'); 
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname); // Nombra los archivos con un timestamp
+        cb(null, Date.now() + '-' + file.originalname);
     }
 });
 
@@ -253,60 +253,13 @@ authRouter.post("/reset-password/:token", async (req, res) => {
   }
 });
 
-// authRouter.post('/jwtlogin', verifyRequiredBody(['email', 'password']), passport.authenticate('login', { failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida')}`}), async (req, res) => {
-//     try {
-//         const token = createToken(req.user, '1h');
-         //res.cookie(`${config.APP_NAME}_cookie`, token, { maxAge: 60 * 60 * 1000, httpOnly: true });
-         //res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado' });
-//         res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
-//     } catch (err) {
-//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//     }
-// });
-
-// authRouter.post('/jwtlogin', verifyRequiredBody(['email', 'password']), passport.authenticate('login', { failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}`}), async (req, res) => {
-//         try {
-//             const token = createToken(req.user, '1h');
-//             res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
-//         } catch (err) {
-//             res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//         }
-//     }
-// );
-
-
-// Ruta con passport y multer
-
-// authRouter.post('/jwtlogin', uploader.array('documents', 4), verifyRequiredBody(['email', 'password']),
-//         passport.authenticate('login', {failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}`}), 
-//     async (req, res) => {
-//         try {
-//           // Si se subieron archivos, procesar la información
-//             if (req.files && req.files.length > 0) {
-//                 const documents = req.files.map(file => ({
-//                     name: file.originalname,
-//                     reference: file.path
-//                 }));
-//               // Guardar los documentos en el usuario autenticado
-//                 req.user.documents = documents;
-//                 await req.user.save();
-//             }
-//           // Generar el token JWT
-//             const token = createToken(req.user, '1h');
-//             res.status(200).send({ origin: config.SERVER, payload: 'Usuario autenticado', token: token });
-//         } catch (err) {
-//             res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//         }
-//     }
-// );
-
 authRouter.post('/jwtlogin', uploader.array('documents', 3), verifyRequiredBody(['email', 'password']),
     passport.authenticate('login', { 
         failureRedirect: `/login?error=${encodeURI('Usuario inexistente o clave no válida. ¿Olvidaste tu contraseña? Puedes restablecerla aquí: /forgot-password')}` 
     }), 
     async (req, res) => {
         try {
-            // Si se subieron archivos, procesar la información
+            // Si se subieron archivos, procesa la información
             let documents = [];
             if (req.files && req.files.length > 0) {
                 documents = req.files.map(file => ({
@@ -315,19 +268,19 @@ authRouter.post('/jwtlogin', uploader.array('documents', 3), verifyRequiredBody(
                 }));
             }
 
-            // Filtrar el usuario por su ID (req.user._id)
+            // Filtra el usuario por su ID 
             const filter = { _id: req.user._id };
 
-            // Actualizar los documentos y el campo last_connection del usuario
+            // Actualiza los documentos y el campo last_connection del usuario
             const update = {
                 documents, 
-                last_connection: new Date() // Actualiza la última conexión a la fecha actual
+                last_connection: new Date() 
             };
 
-            // Opciones: devolver el documento actualizado y correr validaciones
+            // Opciones: devuelve el documento actualizado y hace las validaciones
             const options = { new: true, runValidators: true };
 
-            // Actualizar los documentos y la última conexión en la base de datos
+            // Actualiza los documentos y la última conexión en la base de datos
             const updatedUser = await manager.updateUser(filter, update, options);
             
             if (!updatedUser) {

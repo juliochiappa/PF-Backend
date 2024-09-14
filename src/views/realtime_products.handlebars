@@ -100,11 +100,11 @@
     const productsList = document.getElementById('productsList');
     const productForm = document.getElementById('productForm');
 
-    // Escuchar nuevos productos vía sockets
+    // Escucha nuevos productos vía sockets
     socketClient.on('newProduct', data => {
         console.log('Nuevo producto recibido:', data);
         const li = document.createElement('li');
-        li.textContent = `${data.id} ${data.title} ${data.description} ${data.code} ($ ${data.price}) ${data.status} ${data.stock} ${data.category} ${data.thumbnails}`;
+        li.textContent = `${data.id} ${data.title} ${data.description} ${data.code} ${data.price} ${data.status} ${data.stock} ${data.category} ${data.thumbnails}`;
         li.classList.add('list-group-item');
         productsList.appendChild(li);
     });
@@ -139,7 +139,7 @@
         }
     });
 
-    // Obtener el ID del carrito del usuario
+    // Obtiene el ID del carrito del usuario
     const getCartId = async () => {
         try {
             const response = await fetch('/api/carts/mycart');
@@ -147,7 +147,7 @@
                 throw new Error('Error al obtener el carrito');
             }
             const data = await response.json();
-            return data.payload._id; // Asegúrate de que esta propiedad esté correctamente definida en el backend
+            return data.payload._id; 
         } catch (error) {
             console.error('Error al obtener el carrito:', error);
             return null;

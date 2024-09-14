@@ -5,7 +5,6 @@ import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import flash from 'express-flash';
 import passport from 'passport';
-//import FileStore from 'session-file-store';
 import { faker } from '@faker-js/faker';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUiExpress from 'swagger-ui-express';
@@ -91,9 +90,7 @@ process.on('exit', code => {
     }
 });
 
-//const fileStorage = FileStore(session);
 app.use(session({
-    //store: new fileStorage({ path: './sessions', ttl: 15, retries: 0 }),
     store: MongoStore.create({ mongoUrl: config.MONGODB_URI, ttl: 15 }),
     secret: config.SECRET,
     resave: true,
@@ -166,15 +163,9 @@ const specs = swaggerJSDoc(swaggerOptions);
 app.use('/api/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 
 
-//Endpoint de Bienvenida a la app
+//Endpoint de Login de la app que se va a mostrar en el deploy
 app.get('/', (req, res) => {
     res.redirect('/login');
-    // res.send(`
-    //     <h1>¡Bienvenido a mi nueva entrega del Proyecto Final!</h1>
-    //     <ul>
-    //     <h2>Servidor express activo en puerto ${config.PORT}<h2>
-    //     <ul>
-    //     `);
     });
 
 

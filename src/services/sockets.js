@@ -3,15 +3,15 @@ import { Server } from 'socket.io';
 const initSocket = (server) => {
     const io = new Server(server);
 
-    // Al establecer conexión con un cliente
+    // Establece conexión con un cliente
     io.on('connection', (socket) => {
         console.log('Nuevo cliente conectado:', socket.id);
 
-        // Escuchar cuando un cliente envía un nuevo mensaje
+        // Escucha cuando un cliente envía un nuevo mensaje
         socket.on('newMessage', (message) => {
             console.log('Mensaje recibido:', message);
 
-            // Emitir el mensaje a todos los clientes conectados
+            // Emiti el mensaje a todos los clientes conectados
             io.emit('messageArrived', message);
         });
 

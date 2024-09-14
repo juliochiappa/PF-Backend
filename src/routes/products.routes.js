@@ -37,7 +37,6 @@ productsRouter.get('/aggregate', async (req, res) => {
     }
 });
 
-
 productsRouter.get('/one/:id', async (req, res) => {
     try {
         const product = await manager.getProductById(req.validatedId);
@@ -48,7 +47,7 @@ productsRouter.get('/one/:id', async (req, res) => {
     }
 });
 
-productsRouter.post('/', verifyToken, handlePolicies(['admin', 'premium']), verifyRequiredBody(['title', 'code', 'price', 'stock']), uploader.single('thumbnail'), async (req, res) => {
+productsRouter.post('/', verifyToken, handlePolicies(['admin', 'premium']), verifyRequiredBody(['title', 'description', 'code', 'price', 'status', 'stock', 'category']), uploader.single('thumbnails'), async (req, res) => {
     try {
         const socketServer = req.app.get('socketServer');
         const owner = req.user.role === 'premium' ? req.user._id : null;
@@ -105,7 +104,7 @@ productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']),
         if (req.user.role === 'premium' && product.owner.toString() !== req.user._id.toString()) {
             return res.status(403).send({ message: "No tienes permiso para eliminar este producto." });
         }
-        // Se elimina el producto si está todo correcto
+        // Elimina el producto si está todo correcto
         const filter = { _id: req.params.id };
         const process = await manager.deleteProduct(filter);
 
@@ -114,7 +113,6 @@ productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']),
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
-
 
 productsRouter.all ('*', async (req, res) => {
     res.status(404).send({ origin: config.SERVER, payload: null, error: 'No se encuentra la ruta solicitada' });

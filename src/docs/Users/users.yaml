@@ -34,6 +34,25 @@ components:
         cart_id:
           type: string
           description: Cart ID associated with the user
+        documents:
+          type: array
+          description: List of documents associated with the user
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the document
+              reference:
+                type: string
+                description: Reference to the document
+            required:
+              - name
+              - reference
+        last_connection:
+          type: string
+          format: date-time
+          description: The last connection time of the user
       required:
         - firstName
         - lastName

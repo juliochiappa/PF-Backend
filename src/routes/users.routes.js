@@ -67,11 +67,11 @@ usersRouter.put('/:id', async (req, res) => {
 //     try {
 //         const userId = req.params.id;
 //         const user = await manager.getUserById(userId);
-//         // Verifica si el usuario existe
+         // Verifica si el usuario existe
 //         if (!user) {
 //             return res.status(404).send({ message: "Usuario no encontrado." });
 //         }
-//         // Alterna el rol del usuario entre 'user' y 'premium'
+         // Alterna el rol del usuario entre 'user' y 'premium'
 //         user.role = user.role === 'user' ? 'premium' : 'user';
 //         await user.save();
 //         res.status(200).send({ message: `El rol del usuario ha sido cambiado a ${user.role}` });
@@ -155,35 +155,30 @@ usersRouter.post('/:id/documents', uploader.array('documents', 3), async (req, r
     const userId = req.params.id;
     const requiredDocuments = ['Identificación', 'Comprobante de domicilio', 'Comprobante de estado de cuenta'];
     try {
-        // Verificar si se subieron archivos
+        // Verifica si se subieron archivos
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No se subieron archivos.' });
         }
-
         // Mapea los documentos subidos
         const documents = req.files.map(file => ({
-            name: file.originalname, // Aquí puedes mapear el nombre según el documento que es
-            reference: file.path      // La referencia o ruta del archivo subido
+            name: file.originalname, 
+            reference: file.path      
         }));
 
-        // Añadir los documentos al usuario
+        // Añade los documentos al usuario
         const updatedUser = await manager.addDocumentsToUser(userId, documents);
         if (!updatedUser) {
             return res.status(404).json({ message: 'Usuario no encontrado.' });
         }
-
-        // Verificar si el usuario ha subido todos los documentos requeridos
+        // Verifica si el usuario ha subido todos los documentos requeridos
         const userDocuments = updatedUser.documents.map(doc => doc.name);
         const documentsUploaded = requiredDocuments.every(doc => userDocuments.includes(doc));
 
-        // Si faltan documentos, notificar al usuario
         if (!documentsUploaded) {
             return res.status(400).json({
                 message: 'Faltan documentos por subir. Asegúrate de cargar todos los documentos requeridos.'
             });
         }
-
-        // Respuesta exitosa si los documentos se subieron correctamente
         res.status(200).json({
             message: 'Documentos subidos y validados correctamente.',
             user: updatedUser
@@ -193,7 +188,6 @@ usersRouter.post('/:id/documents', uploader.array('documents', 3), async (req, r
         res.status(500).json({ message: 'Error al subir los documentos.' });
     }
 });
-
 
 //Mailing con nodemailer
 export function sendResetEmail(to, resetLink) {

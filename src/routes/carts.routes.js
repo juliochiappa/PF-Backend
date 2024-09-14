@@ -20,7 +20,7 @@ cartsRouter.get('/', async (req, res) => {
     }
 });
 
-// Obtener el carrito del usuario
+// Obtiene el carrito del usuario
 cartsRouter.get('/mycart', verifyToken, async (req, res) => {
     try {
         const userId = req.user._id;         
@@ -41,7 +41,6 @@ cartsRouter.get('/mycart', verifyToken, async (req, res) => {
         res.status(500).json({ message: 'Error al obtener el carrito', error: error.message });
     }
 });
-
 
 // Ruta para finalizar la compra de un carrito
 cartsRouter.post('/', verifyToken, async (req, res) => {

@@ -36,7 +36,6 @@ class AdoptmeUsersService {
         };
     };
     
-
     deleteUser = async (filter) => {
         try {
             return await adoptmeUserModel.findOneAndDelete(filter);

@@ -5,11 +5,6 @@ import config from '../config.js';
 
 const baseRouter = Router();
 
-/**
- * Recibe una cantidad variable de parámetros
- * Si alguno no es numérico, corta la ejecución del script con un error -4
- * Ver app.js para captura (listener) de este error.
- */
 const listNumbers = (...numbers) => {
     numbers.forEach(number => {
         if (isNaN(number)) {

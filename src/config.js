@@ -18,7 +18,7 @@ const config = {
   //DIRNAME: url.fileURLToPath(new URL('.', import.meta.url)),
   DIRNAME: path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:\/)/, '$1')),
   //get UPLOAD_DIR() { return `${this.DIRNAME}/public/img` },
-  get UPLOAD_DIR() { return `${this.DIRNAME}/uploads` },
+  get UPLOAD_DIR() { return `${this.DIRNAME}/src/uploads` },
   MONGODB_ID_REGEX: /^[a-fA-F0-9]{24}$/,
   MONGODB_URI: process.env.MONGODB_URI,
   PRODUCTS_PER_PAGE: 5,

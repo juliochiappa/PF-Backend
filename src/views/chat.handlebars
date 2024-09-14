@@ -1,18 +1,16 @@
 <div>
     <h1>Sistema chat Websocket</h1>
 
-    <!-- Aquí se muestran los mensajes -->
+    <!-- Muestra los mensajes -->
     <ul id="messageList">
-        <!-- Los mensajes se añaden dinámicamente -->
     </ul>
 
-    <!-- Campo de entrada para el mensaje -->
+    <!-- Entrada del mensaje -->
     <input type="text" id="chat" name="chat" placeholder="Ingresar mensaje" style="width: 300px;" />
     <br />
     <button onClick="sendMessage()">Enviar</button>
 </div>
 
-<!-- Script de Socket.IO -->
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
@@ -20,18 +18,16 @@
     const chatInput = document.getElementById('chat');
     const messageList = document.getElementById('messageList');
 
-    // Escucha los mensajes nuevos y los muestra en la lista
     socketClient.on('messageArrived', (data) => {
         const li = document.createElement('li');
         li.textContent = data; 
         messageList.appendChild(li);
     });
 
-    // Función para enviar el mensaje
     const sendMessage = () => {
         if (chatInput.value !== '') {
-            socketClient.emit('newMessage', chatInput.value); // Envía el mensaje al servidor
-            chatInput.value = ''; // Limpia el campo de texto después de enviar el mensaje
+            socketClient.emit('newMessage', chatInput.value);
+            chatInput.value = ''; 
         }
     }
 </script>
