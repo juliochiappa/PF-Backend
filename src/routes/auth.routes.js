@@ -11,18 +11,6 @@ const authRouter = Router();
 const manager = new UserManager();
 initAuthStrategies();
 
-// Configuración de multer para almacenar los archivos
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, '../public/img'); 
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-
-//const upload = multer({ storage: storage });
-
 export const verifyAuthorization = (role) => {
   return async (req, res, next) => {
     if (!req.user)

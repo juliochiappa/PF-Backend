@@ -29,7 +29,7 @@ cartsRouter.get('/mycart', verifyToken, async (req, res) => {
             return res.status(400).json({ message: 'Usuario no autenticado' });
         }
 
-        const cart = await manager.getCartByUserId({ _user_id: userId });
+        const cart = await manager.getCartById({ _user_id: userId });
 
         if (!cart) {
             return res.status(404).json({ message: 'Carrito no encontrado' });

@@ -8,6 +8,10 @@
                 <p>ID Producto: {{_id._id}}</p>
                 <p>Producto: {{_id.description}}</p>
                 <p>Cantidad seleccionada: {{stock}}</p>
+                
+                <button class="btn btn-success update-quantity" data-action="increase" data-cart-id="{{../_id}}" data-product-id="{{_id}}">+</button>
+                <button class="btn btn-danger update-quantity" data-action="decrease" data-cart-id="{{../_id}}" data-product-id="{{_id}}">-</button>
+                <button class="btn btn-warning remove-product" data-cart-id="{{../_id}}" data-product-id="{{_id._id}}">Eliminar Carrito</button>
             </li>
         {{/each}}
     </ul>
@@ -18,4 +22,37 @@
 <script>
     const serverAddress = 'ws://localhost:8080';
     const socketClient = io(serverAddress);
+
+    // Función para actualizar la cantidad del producto
+    document.querySelectorAll('.update-quantity').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const cartId = e.target.getAttribute('data-cart-id');
+            const productId = e.target.getAttribute('data-product-id');
+            const action = e.target.getAttribute('data-action');
+            
+            socketClient.emit('updateQuantity', {
+                cartId: cartId,
+                productId: productId,
+                action: action 
+            });
+        });
+    });
+
+    // Función para eliminar un producto del carrito
+    document.querySelectorAll('.remove-product').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const cartId = e.target.getAttribute('data-cart-id');
+            const productId = e.target.getAttribute('data-product-id');
+
+            socketClient.emit('removeProduct', {
+                cartId: cartId,
+                productId: productId
+            });
+        });
+    });
+
+    // Actualiza la página cuando hay cambios en el carrito
+    socketClient.on('cartUpdated', (data) => {
+        location.reload(); 
+    });
 </script>
