@@ -33,7 +33,7 @@
             <li class="list-group-item">{{title}}, {{description}}, {{code}}, {{price}}, {{status}}, {{stock}}, {{category}}, {{thumbnails}}</li>
                 <br>
                 <span class="black">
-                    <button class="btn btn-success" onclick="addToCart('{{_id}}')">Agregar al carrito</button>
+                    <button class="btn btn-success" onclick="addToCart('{{pid}}')">Agregar al carrito</button>
                 </span>
                 <br>
         {{/each}}
@@ -102,15 +102,23 @@
     evt.preventDefault();
 
     const formData = new FormData(productForm);
+    const productData = Object.fromEntries(formData); 
+
+    const token = localStorage.getItem('jwtToken'); 
 
     try {
         const response = await fetch('/api/products', {
             method: 'POST',
-            body: formData 
+            body: formData,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
         });
         if (response.ok) {
             console.log('Producto cargado correctamente.');
             productForm.reset();
+
+            socketClient.emit('addProduct', productData); 
         } else {
             console.error('Error al cargar el producto.');
         }
@@ -119,40 +127,49 @@
     }
 });
 
-
-    // Obtiene el ID del carrito del usuario
-    const getCartId = async () => {
-        try {
-            const response = await fetch('/api/carts/mycart');
-            if (!response.ok) {
-                throw new Error('Error al obtener el carrito');
-            }
-            const data = await response.json();
-            return data.payload._id; 
-        } catch (error) {
-            console.error('Error al obtener el carrito:', error);
-            return null;
-        }
-    };
-
     // Función para agregar un producto al carrito
     const addToCart = async (pid) => {
-        try {
-            const cartId = await getCartId();
-            if (!cartId) {
-                console.error('No se pudo obtener el ID del carrito.');
-                return;
-            }
-
-            const process = await fetch(`/api/carts/${cartId}/products/${pid}`, {
-                method: 'PUT'
-            });
-            const result = await process.json();
-            console.log(result);
-        } catch (error) {
-            console.error('Error al agregar el producto al carrito:', error);
+    try {
+        const response = await fetch('/api/carts/mycart');
+        if (!response.ok) {
+            throw new Error(`Error al obtener el carrito: ${response.status} ${response.statusText}`);
         }
-    };
+        const data = await response.json();
+        const cartId = data.payload?._id;
+
+        if (!cartId) {
+            console.error('No se pudo obtener el ID del carrito.');
+            return;
+        }
+
+        // Obtiene el carrito completo usando el ID
+        const cart = await getCartById(cartId);
+        if (!cart || cart.error) {
+            console.error('No se pudo obtener el carrito completo.');
+            return;
+        }
+
+        const addProductResponse = await fetch(`/api/carts/${cartId}/products/${pid}`, {
+            method: 'PUT'
+        });
+
+        if (!addProductResponse.ok) {
+            console.error('Error en la respuesta del servidor:', addProductResponse.statusText);
+            return;
+        }
+
+        const result = await addProductResponse.json();
+
+        if (result.error) {
+            console.error('Error al agregar producto al carrito:', result.error);
+            return;
+        }
+
+        console.log('Producto agregado al carrito:', result);
+    } catch (error) {
+        console.error('Error al agregar el producto al carrito:', error);
+    }
+};
 </script>
 
 <br>

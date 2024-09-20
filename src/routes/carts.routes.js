@@ -1,19 +1,20 @@
 import { Router } from 'express';
 import config from '../config.js';
 import CartManager from '../controllers/cartsManager.js';
+import ProductManager from '../controllers/productsManager.js';
 import ticketModel from '../models/tickets.models.js';
 import { verifyMongoDBId, verifyToken, handlePolicies, generateUniqueTicketCode, calculateTotalAmount } from '../services/utils.js';
 
 
 const cartsRouter = Router();
 const manager = new CartManager();
+const managerProduct = new ProductManager();
 
 cartsRouter.param('id', verifyMongoDBId);
 
 cartsRouter.get('/', async (req, res) => {
     try {
         const process = await manager.getAllCarts();
-
         res.status(200).send({ origin: config.SERVER, payload: process });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
@@ -23,22 +24,15 @@ cartsRouter.get('/', async (req, res) => {
 // Obtiene el carrito del usuario
 cartsRouter.get('/mycart', verifyToken, async (req, res) => {
     try {
-        const userId = req.user._id;         
-
-        if (!userId) {
-            return res.status(400).json({ message: 'Usuario no autenticado' });
-        }
-
+        const userId = req.user._id; 
         const cart = await manager.getCartById({ _user_id: userId });
-
         if (!cart) {
-            return res.status(404).json({ message: 'Carrito no encontrado' });
+            return res.status(404).json({ message: 'Carrito no encontrado para el usuario autenticado' });
         }
-
         res.status(200).json({ payload: cart });
     } catch (error) {
         console.error('Error al obtener el carrito:', error);
-        res.status(500).json({ message: 'Error al obtener el carrito', error: error.message });
+        res.status(500).json({ message: 'Error interno al obtener el carrito', error: error.message });
     }
 });
 
@@ -68,7 +62,7 @@ cartsRouter.post('/:id/purchase', async (req, res) => {
     const cartId = req.params.id;
 
     try {
-        const cart = await manager.getAllCarts(cartId).populate('products.product');
+        const cart = await manager.getAllCarts(cartId).populate('products.productId');
 
         if (!cart) {
             return res.status(404).json({ error: 'Carrito no encontrado' });
@@ -145,38 +139,28 @@ cartsRouter.put('/:id', async (req, res) => {
     }
 });
 
-// Agrega un producto al carrito
-cartsRouter.put('/:cid/products/:pid', verifyToken, handlePolicies(['self']), async (req, res) => {
-    try {
-        const cartId = req.params.cid;
-        const productId = req.params.pid;
+// Aumentar o disminuir cantidad de un producto en el carrito
+cartsRouter.put('/:cartId/product/:productId', verifyToken, handlePolicies(['self']), async (req, res) => {
+    const { cartId, productId } = req.params;
+    const { action } = req.body;
 
-        // Verifica si el carrito y el producto existen antes de actualizar
+    try {
         const cart = await manager.getCartById(cartId);
         if (!cart) {
-            return res.status(404).send({ origin: config.SERVER, payload: null, error: 'Carrito no encontrado' });
+            console.error(`Carrito con ID ${cartId} no encontrado`);
+            return res.status(404).json({ message: 'Carrito no encontrado' });
         }
 
-        const productInCart = cart.products.find(p => p.productId.toString() === productId);
-
-        let update;
-        if (productInCart) {
-            update = { $inc: { 'products.$[elem].quantity': 1 } };
-        } else {
-            update = { $push: { products: { productId: productId, quantity: 1 } } };
+        const product = cart.products.find(p => p._id.toString() === productId);
+        if (!product) {
+            console.error(`Producto con ID ${productId} no encontrado en el carrito`);
+            return res.status(404).json({ message: 'Producto no encontrado en el carrito' });
         }
 
-        const options = { new: true, arrayFilters: [{ 'elem.productId': productId }] };
-
-        const updatedCart = await manager.updateCarts({ _id: cartId }, update, options);
-
-        if (!updatedCart) {
-            return res.status(404).send({ origin: config.SERVER, payload: null, error: 'Carrito no encontrado' });
-        }
-
-        res.status(200).send({ origin: config.SERVER, payload: `Producto ${productId} agregado al carrito ${cartId}`, cart: updatedCart });
-    } catch (err) {
-        res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+        // Aquí sigue la lógica de actualización de stock...
+    } catch (error) {
+        console.error('Error al actualizar la cantidad:', error.message);
+        res.status(500).json({ message: 'Error al actualizar la cantidad', error: error.message });
     }
 });
 
@@ -191,16 +175,25 @@ cartsRouter.delete('/:id', verifyToken, handlePolicies(['self']), async (req, re
     }
 });
 
-cartsRouter.delete('/:id/products/:id', async (req, res) => {
+// Eliminar un producto del carrito
+cartsRouter.delete('/:cartId/product/:productId', async (req, res) => {
     try {
-        const filter = { _id: req.params.id }; 
-        const process = await manager.deleteCartItem(filter); 
-
-        res.status(200).send({ origin: config.SERVER, payload: process });
-    } catch (err) {
-        res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+      const { cartId, productId } = req.params;
+      const result = await manager.deleteCartItem(cartId, productId);
+      
+      if (result.status === 404) {
+        return res.status(404).send({ origin: config.SERVER, payload: null, error: result.message });
+      }
+      
+      if (result.status === 500) {
+        return res.status(500).send({ origin: config.SERVER, payload: null, error: result.message });
+      }
+  
+      res.status(200).send({ origin: config.SERVER, payload: result.cart });
+    } catch (error) {
+      res.status(500).send({ origin: config.SERVER, payload: null, error: error.message });
     }
-});
-
-
+  });
+  
+  
 export default cartsRouter;

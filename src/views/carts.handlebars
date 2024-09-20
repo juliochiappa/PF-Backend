@@ -1,58 +1,94 @@
 <div>
     <h1>Carrito de Compras -CIEC-</h1>
     {{#each carts}}
-    <h4>Carrito nro. {{@index}}</h4>
-    <ul class="list-group">
-        {{#each products}}
+      <h4>Carrito nro. {{@index}}</h4>
+      <ul class="list-group">
+        {{#if this.products.length}}
+          {{#each this.products}}
             <li class="list-group-item">
-                <p>ID Producto: {{_id._id}}</p>
-                <p>Producto: {{_id.description}}</p>
-                <p>Cantidad seleccionada: {{stock}}</p>
-                
-                <button class="btn btn-success update-quantity" data-action="increase" data-cart-id="{{../_id}}" data-product-id="{{_id}}">+</button>
-                <button class="btn btn-danger update-quantity" data-action="decrease" data-cart-id="{{../_id}}" data-product-id="{{_id}}">-</button>
-                <button class="btn btn-warning remove-product" data-cart-id="{{../_id}}" data-product-id="{{_id._id}}">Eliminar Carrito</button>
+              <p>ID Producto: {{_id._id}}</p> 
+              <p>Nombre del Producto: {{_id.title}}</p> 
+              <p>Precio: {{_id.price}}</p> 
+              <p>Stock en carrito: {{stock}}</p>
+              <button class="btn btn-success update-quantity" data-action="increase" data-cart-id="{{../_id}}" data-product-id="{{_id._id}}">+</button>
+              <button class="btn btn-danger update-quantity" data-action="decrease" data-cart-id="{{../_id}}" data-product-id="{{_id._id}}">-</button>
+              <button class="btn btn-warning remove-product" data-cart-id="{{../_id}}" data-product-id="{{_id._id}}">Eliminar Producto</button>
             </li>
-        {{/each}}
-    </ul>
+          {{/each}}
+        {{else}}
+          <li>No hay productos en este carrito.</li>
+        {{/if}}
+      </ul>
+    {{else}}
+      <p>No hay carritos disponibles.</p>
     {{/each}}
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
 <script>
-    const serverAddress = 'ws://localhost:8080';
-    const socketClient = io(serverAddress);
+const serverAddress = 'ws://localhost:8080';
+const socketClient = io(serverAddress);
 
-    // Función para actualizar la cantidad del producto
-    document.querySelectorAll('.update-quantity').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const cartId = e.target.getAttribute('data-cart-id');
-            const productId = e.target.getAttribute('data-product-id');
-            const action = e.target.getAttribute('data-action');
-            
-            socketClient.emit('updateQuantity', {
-                cartId: cartId,
-                productId: productId,
-                action: action 
-            });
+document.addEventListener('DOMContentLoaded', () => {
+  const updateQuantityButtons = document.querySelectorAll('.update-quantity');
+  const removeProductButtons = document.querySelectorAll('.remove-product');
+
+
+  updateQuantityButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+      const action = event.target.getAttribute('data-action'); // 'increase' o 'decrease'
+      const cartId = event.target.getAttribute('data-cart-id');
+      const productId = event.target.getAttribute('data-product-id');
+
+      try {
+        const response = await fetch(`/carts/${cartId}/product/${productId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action })
         });
+        if (response.ok) {
+          const data = await response.json();
+          alert(data.message || 'Cantidad actualizada con éxito');
+        } else {
+          alert('Error al actualizar la cantidad');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     });
+  });
 
-    // Función para eliminar un producto del carrito
-    document.querySelectorAll('.remove-product').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const cartId = e.target.getAttribute('data-cart-id');
-            const productId = e.target.getAttribute('data-product-id');
 
-            socketClient.emit('removeProduct', {
-                cartId: cartId,
-                productId: productId
-            });
+  removeProductButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+      const cartId = event.target.getAttribute('data-cart-id');
+      const productId = event.target.getAttribute('data-product-id');
+
+      try {
+        const response = await fetch(`/carts/${cartId}/product/${productId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
+        if (response.ok) {
+          const data = await response.json();
+          alert(data.message || 'Producto eliminado con éxito');
+        } else {
+          alert('Error al eliminar el producto');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     });
+  });
+});
 
-    // Actualiza la página cuando hay cambios en el carrito
-    socketClient.on('cartUpdated', (data) => {
-        location.reload(); 
-    });
+// Actualiza la página cuando hay cambios en el carrito
+socketClient.on('cartUpdated', (data) => {
+    console.log('Carrito actualizado:', data);
+    location.reload();
+});
 </script>

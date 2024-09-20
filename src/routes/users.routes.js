@@ -63,26 +63,10 @@ usersRouter.put('/:id', async (req, res) => {
     }
 });
 
-// usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (req, res) => {
-//     try {
-//         const userId = req.params.id;
-//         const user = await manager.getUserById(userId);
-         // Verifica si el usuario existe
-//         if (!user) {
-//             return res.status(404).send({ message: "Usuario no encontrado." });
-//         }
-         // Alterna el rol del usuario entre 'user' y 'premium'
-//         user.role = user.role === 'user' ? 'premium' : 'user';
-//         await user.save();
-//         res.status(200).send({ message: `El rol del usuario ha sido cambiado a ${user.role}` });
-//     } catch (err) {
-//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//     }
-// });
-
 usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (req, res) => {
     try {
         const userId = req.params.id;
+        
         const user = await manager.getUserById(userId);
         if (!user) {
             return res.status(404).send({ message: "Usuario no encontrado." });
@@ -90,22 +74,22 @@ usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (r
         if (user.role === 'premium') {
             return res.status(400).send({ message: "El usuario ya es premium." });
         }
-
+        
         const requiredDocuments = [
             'Identificación',
             'Comprobante de domicilio',
             'Comprobante de estado de cuenta'
         ];
-
+        
         const userDocuments = user.documents.map(doc => doc.name);
         const documentsUploaded = requiredDocuments.every(doc => userDocuments.includes(doc));
-
+        
         if (!documentsUploaded) {
             return res.status(400).send({
                 message: "El usuario no ha terminado de procesar su documentación. Asegúrate de haber cargado todos los documentos necesarios."
             });
         }
-
+        
         user.role = 'premium';
         await manager.updateUser(user);
         res.status(200).send({ message: `El rol del usuario ha sido cambiado a ${user.role}` });
@@ -113,48 +97,47 @@ usersRouter.put('/premium/:id', verifyToken, handlePolicies(['admin']), async (r
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
-
-
+           
 usersRouter.delete('/:id', async (req, res) => {
     try {
         const filter = { _id: req.params.id };
         const process = await manager.deleteUser(filter);
-
+        
         res.status(200).send({ origin: config.SERVER, payload: process });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
     }
 });
-
+            
 // Endpoint para subir documentos
 // usersRouter.post('/:id/documents', uploader.array('productImages', 3), async (req, res) => {
-//     const userId = req.params.id;
-//     try {
-//         if (!req.files || req.files.length === 0) {
-//             return res.status(400).json({ message: 'No se subieron archivos.' });
-//         }
-//         const documents = req.files.map(file => ({
-//             name: file.originalname,
-//             reference: file.path
-//         }));
-//         const updatedUser = await manager.addDocumentsToUser(userId, documents);
-//         if (!updatedUser) {
-//             return res.status(404).json({ message: 'Usuario no encontrado.' });
-//         }
-//         res.status(200).json({
-//             message: 'Documentos subidos y estado de usuario actualizado.',
-//             user: updatedUser
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error al subir los documentos.' });
-//     }
-// });
-
+    //     const userId = req.params.id;
+    //     try {
+        //         if (!req.files || req.files.length === 0) {
+            //             return res.status(400).json({ message: 'No se subieron archivos.' });
+            //         }
+            //         const documents = req.files.map(file => ({
+                //             name: file.originalname,
+                //             reference: file.path
+                //         }));
+                //         const updatedUser = await manager.addDocumentsToUser(userId, documents);
+                //         if (!updatedUser) {
+                    //             return res.status(404).json({ message: 'Usuario no encontrado.' });
+                    //         }
+                    //         res.status(200).json({
+                        //             message: 'Documentos subidos y estado de usuario actualizado.',
+                        //             user: updatedUser
+                        //         });
+                        //     } catch (error) {
+                            //         console.error(error);
+                            //         res.status(500).json({ message: 'Error al subir los documentos.' });
+                            //     }
+                            // });
+                                        
 usersRouter.post('/:id/documents', uploader.array('documents', 3), async (req, res) => {
-    const userId = req.params.id;
-    const requiredDocuments = ['Identificación', 'Comprobante de domicilio', 'Comprobante de estado de cuenta'];
-    try {
+        const userId = req.params.id;
+        const requiredDocuments = ['Identificación', 'Comprobante de domicilio', 'Comprobante de estado de cuenta'];
+        try {
         // Verifica si se subieron archivos
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No se subieron archivos.' });
@@ -164,7 +147,6 @@ usersRouter.post('/:id/documents', uploader.array('documents', 3), async (req, r
             name: file.originalname, 
             reference: file.path      
         }));
-
         // Añade los documentos al usuario
         const updatedUser = await manager.addDocumentsToUser(userId, documents);
         if (!updatedUser) {
@@ -173,7 +155,7 @@ usersRouter.post('/:id/documents', uploader.array('documents', 3), async (req, r
         // Verifica si el usuario ha subido todos los documentos requeridos
         const userDocuments = updatedUser.documents.map(doc => doc.name);
         const documentsUploaded = requiredDocuments.every(doc => userDocuments.includes(doc));
-
+        
         if (!documentsUploaded) {
             return res.status(400).json({
                 message: 'Faltan documentos por subir. Asegúrate de cargar todos los documentos requeridos.'
@@ -183,10 +165,10 @@ usersRouter.post('/:id/documents', uploader.array('documents', 3), async (req, r
             message: 'Documentos subidos y validados correctamente.',
             user: updatedUser
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error al subir los documentos.' });
-    }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error al subir los documentos.' });
+        }
 });
 
 //Mailing con nodemailer
@@ -199,7 +181,7 @@ export function sendResetEmail(to, resetLink) {
             pass: config.GMAIL_APP_PASS
         }
     });
-
+    
     return transport.sendMail({
         from: `Sistema CIEC <${config.GMAIL_APP_USER}>`,
         to: to,
@@ -213,7 +195,7 @@ usersRouter.get('/mail', async (req, res) => {
     try {
         const resetLink = 'http://tudominio.com/reset-password/4fddf31f5b849e0a0e93b8e6e8c7b32d'; // Link de prueba
         const confirmation = await sendResetEmail('juliochiappa@hotmail.com', resetLink);
-     
+        
         res.status(200).send({ status: 'OK', data: confirmation });
     } catch (err) {
         res.status(500).send({ status: 'ERR', data: err.message });
@@ -222,3 +204,4 @@ usersRouter.get('/mail', async (req, res) => {
 
 
 export default usersRouter;
+

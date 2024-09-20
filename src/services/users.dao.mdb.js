@@ -71,6 +71,6 @@ class UsersService {
             return err.message;
         };
     };
-}
+};
 
 export default UsersService;

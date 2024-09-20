@@ -30,8 +30,7 @@ import { uploader } from './services/uploader.js';
 const app = express();
 
 const expressInstance = app.listen(config.PORT, async () => {
-    //await mongoose.connect(config.MONGODB_URI);
-    MongoSingleton.getInstance(); //Conecta a la ddbb a través de la clase MongoSingleton
+    MongoSingleton.getInstance(); 
 });
 
 const socketServer = initSocket(expressInstance);
@@ -116,7 +115,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/test', new TestRouter().getRouter());
 app.use('/upload', uploadRouter);
 app.get('/upload', (req, res) => {
-    res.render('upload'); // Renderiza la vista 'upload.hbs'
+    res.render('upload'); 
 });
 
 app.use('/static', express.static(`${config.DIRNAME}/public`));

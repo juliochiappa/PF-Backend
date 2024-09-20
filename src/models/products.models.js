@@ -14,7 +14,6 @@ const schema = new mongoose.Schema({
   stock: { type: Number, required: true },
   category: { type: String, enum: ['Nacional', 'Importado'], default: 'Nacional', index: true },
   thumbnails: { type: [String], default: [], require: false },
-  //owner: { type: String, default: 'admin' }
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: 'admin' }
 });
 

@@ -49,23 +49,21 @@ productsRouter.get('/one/:id', async (req, res) => {
 
 productsRouter.post('/', verifyToken, handlePolicies(['admin', 'premium']), verifyRequiredBody(['title', 'description', 'code', 'price', 'status', 'stock', 'category']), uploader.single('thumbnails'), async (req, res) => {
     try {
+        console.log(req.body); // <-- Aquí para verificar los datos recibidos
         const socketServer = req.app.get('socketServer');
         const owner = req.user.role === 'premium' ? req.user._id : null;
 
         const process = await manager.addProduct(req.body, owner);
-       
-        res.status(200).send({ origin: config.SERVER, payload: process });
 
+        res.status(200).send({ origin: config.SERVER, payload: process });
         socketServer.emit('newProduct', req.body);
     } catch (err) {
         if (err.code === 11000) {
-            res
-              .status(400)
-              .send({ error: "El código del producto ya está siendo utilizado" });
-            } else {
-                console.error(err);
-                res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-        } 
+            res.status(400).send({ error: "El código del producto ya está siendo utilizado" });
+        } else {
+            console.error(err); // Verifica el error exacto aquí
+            res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
+        }
     }
 });
 
@@ -82,17 +80,6 @@ productsRouter.put('/:id', verifyToken, handlePolicies('admin'), async (req, res
     }
 }),
 
-// productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']), async (req, res) => {
-//     try {
-//         const filter = { _id: req.validatedId };
-//         const process = await manager.deleteProduct(filter);
-
-//         res.status(200).send({ origin: config.SERVER, payload: process });
-//     } catch (err) {
-//         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
-//     }
-// });
-
 productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']), async (req, res) => {
     try {
         const product = await manager.getProductById(req.params.id);
@@ -107,7 +94,7 @@ productsRouter.delete('/:id', verifyToken, handlePolicies(['admin', 'premium']),
         // Elimina el producto si está todo correcto
         const filter = { _id: req.params.id };
         const process = await manager.deleteProduct(filter);
-
+        
         res.status(200).send({ origin: config.SERVER, payload: process });
     } catch (err) {
         res.status(500).send({ origin: config.SERVER, payload: null, error: err.message });
@@ -119,4 +106,3 @@ productsRouter.all ('*', async (req, res) => {
 });
 
 export default productsRouter;
-
